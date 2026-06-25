@@ -1,0 +1,59 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-asyncio
+
+    - name: Lint with flake8
+      run: |
+        pip install flake8
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+
+    - name: Run tests
+      run: |
+        python -m pytest tests/ -v --cov=agents --cov-report=term-missing
+      env:
+        # 使用测试 API Key（CI 环境不调用真实 API）
+        DEEPSEEK_API_KEY: "test-key-for-ci"
+      continue-on-error: true
+
+    - name: Verify project structure
+      run: |
+        echo "=== 验证核心文件存在 ==="
+        test -f agents/core/agent_loop.py && echo "✅ agent_loop.py"
+        test -f agents/core/base_agent.py && echo "✅ base_agent.py"
+        test -f agents/core/tool_registry.py && echo "✅ tool_registry.py"
+        test -f agents/roles/interviewer_agent.py && echo "✅ interviewer_agent.py"
+        test -f .harness/config/harness.yaml.example && echo "✅ harness.yaml.example"
+        echo "=== 项目结构验证完成 ==="

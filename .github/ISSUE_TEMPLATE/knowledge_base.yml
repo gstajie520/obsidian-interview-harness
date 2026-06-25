@@ -1,0 +1,180 @@
+name: 📚 知识库贡献 / Knowledge Base Contribution
+description: 贡献面试题库 / Contribute interview question bank
+title: "[KB]: "
+labels: ["knowledge-base", "contribution"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你贡献知识库！请确保内容是非私人的、可公开分享的。
+        Thank you for contributing to the knowledge base! Please ensure the content is non-private and shareable.
+
+  - type: dropdown
+    id: kb-type
+    attributes:
+      label: 📦 知识库类型 / Knowledge Base Type
+      options:
+        - Java 面试 / Java Interview
+        - Python 面试 / Python Interview
+        - 前端面试 / Frontend Interview
+        - 算法面试 / Algorithm Interview
+        - 系统设计 / System Design
+        - 数据库 / Database
+        - 网络协议 / Network Protocol
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: input
+    id: kb-name
+    attributes:
+      label: 📝 知识库名称 / Knowledge Base Name
+      description: 例如：SpringBoot高频面试题 / Example: SpringBoot Interview Questions
+      placeholder: "SpringBoot 高频面试题"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📖 描述 / Description
+      description: 简要描述这个知识库的内容和来源 / Briefly describe the content and source of this knowledge base
+      placeholder: |
+        例如：
+        - 包含 100 道 SpringBoot 高频面试题
+        - 来源：个人整理 + 网络公开资料
+        - 难度：初级到中级
+        - 适合人群：准备校招、社招的后端工程师
+    validations:
+      required: true
+
+  - type: input
+    id: question-count
+    attributes:
+      label: 🔢 题目数量 / Question Count
+      description: 大约有多少道题？/ Approximately how many questions?
+      placeholder: "100"
+    validations:
+      required: true
+
+  - type: textarea
+    id: structure
+    attributes:
+      label: 🗂️ 目录结构 / Directory Structure
+      description: 知识库的组织结构 / Organization structure of the knowledge base
+      placeholder: |
+        知识库/SpringBoot面试/
+        ├── 基础配置/
+        │   ├── 自动配置原理.md
+        │   └── Starter机制.md
+        ├── Web开发/
+        │   ├── RESTful API.md
+        │   └── 异常处理.md
+        └── 数据访问/
+            ├── JPA使用.md
+            └── MyBatis集成.md
+      render: shell
+    validations:
+      required: false
+
+  - type: dropdown
+    id: format
+    attributes:
+      label: 📄 文件格式 / File Format
+      description: 题目使用什么格式？/ What format are the questions in?
+      options:
+        - Markdown (标准格式 / Standard Format)
+        - Markdown (需要转换 / Need Conversion)
+        - PDF (需要提取 / Need Extraction)
+        - Word (需要转换 / Need Conversion)
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: license
+    attributes:
+      label: ⚖️ 版权声明 / License
+      description: 这些内容的版权情况？/ What is the copyright status of this content?
+      options:
+        - 原创内容，同意以 MIT License 贡献 / Original content, agree to contribute under MIT License
+        - 整理自公开资料，可以分享 / Compiled from public sources, can be shared
+        - 引用了他人内容，已注明出处 / Quotes others' content with attribution
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: 🔗 来源 / Source
+      description: 如果内容来自网络，请注明来源链接 / If content is from the web, please provide source links
+      placeholder: |
+        例如：
+        - 部分题目参考自 XXX 博客
+        - 参考书籍：《SpringBoot 实战》
+        - 整理自 GitHub 开源项目：https://github.com/xxx
+    validations:
+      required: false
+
+  - type: textarea
+    id: sample
+    attributes:
+      label: 📋 示例题目 / Sample Question
+      description: 提供 1-2 道示例题目，展示格式和质量 / Provide 1-2 sample questions to show format and quality
+      placeholder: |
+        例如：
+
+        ---
+        tags: [SpringBoot, 自动配置, 高频]
+        difficulty: ⭐⭐⭐
+        ---
+
+        # 请说说 SpringBoot 自动配置的原理？
+
+        ## 参考答案
+        SpringBoot 的自动配置主要依赖于 @EnableAutoConfiguration 注解...
+
+        ## 追问方向
+        1. @Conditional 注解有哪些变体？
+        2. 如何自定义 Starter？
+      render: markdown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: contribution-method
+    attributes:
+      label: 📤 贡献方式 / Contribution Method
+      options:
+        - 我会提交 Pull Request / I will submit a Pull Request
+        - 我上传文件，由维护者整理 / I upload files, maintainers organize
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📌 其他信息 / Additional Information
+      description: 任何其他补充信息 / Any additional information
+      placeholder: |
+        - 是否需要帮助整理格式？
+        - 是否需要帮助导入数据库？
+        - 预计完成时间？
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✔️ 检查清单 / Checklist
+      options:
+        - label: 内容是非私人的，可以公开分享 / Content is non-private and can be shared publicly
+          required: true
+        - label: 已注明内容来源（如果不是原创） / Source is attributed (if not original)
+          required: true
+        - label: 题目格式符合项目规范 / Question format follows project guidelines
+          required: true
+        - label: 愿意接受维护者的格式调整 / Willing to accept format adjustments from maintainers
+          required: true

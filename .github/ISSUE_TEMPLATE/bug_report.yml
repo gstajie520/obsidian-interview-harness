@@ -1,0 +1,119 @@
+name: 🐛 Bug 报告 / Bug Report
+description: 报告一个 Bug / Report a bug
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你报告 Bug！请填写以下信息以帮助我们定位问题。
+        Thank you for reporting a bug! Please fill in the following information to help us locate the issue.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 Bug 描述 / Bug Description
+      description: 简要描述这个 Bug / Briefly describe this bug
+      placeholder: 例如：运行 cli_interview.py 时出现 XXX 错误
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 🔄 复现步骤 / Steps to Reproduce
+      description: 如何复现这个问题？/ How to reproduce this issue?
+      placeholder: |
+        1. 运行命令 `python scripts/cli_interview.py`
+        2. 选择选项 2
+        3. 出现错误 XXX
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ 预期行为 / Expected Behavior
+      description: 你期望发生什么？/ What did you expect to happen?
+      placeholder: 应该正常加载题目并开始面试
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: ❌ 实际行为 / Actual Behavior
+      description: 实际发生了什么？/ What actually happened?
+      placeholder: 程序崩溃并显示错误信息
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 📋 错误日志 / Error Logs
+      description: 请粘贴完整的错误日志 / Please paste the complete error log
+      placeholder: |
+        Traceback (most recent call last):
+          File "scripts/cli_interview.py", line 10, in <module>
+            ...
+      render: python
+    validations:
+      required: false
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 💻 操作系统 / Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux (Ubuntu)
+        - Linux (其他 / Other)
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: 🐍 Python 版本 / Python Version
+      description: 运行 `python --version` 查看 / Run `python --version`
+      placeholder: "例如：Python 3.9.7"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: database
+    attributes:
+      label: 🗄️ 数据库类型 / Database Type
+      options:
+        - SQLite
+        - MySQL
+        - 其他 / Other
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📌 其他信息 / Additional Context
+      description: 任何其他有助于定位问题的信息 / Any other information that helps locate the issue
+      placeholder: |
+        - 是否修改过配置文件？
+        - 是否使用了自定义知识库？
+        - 最近是否更新了依赖？
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✔️ 检查清单 / Checklist
+      options:
+        - label: 我已经搜索了现有的 Issues，没有发现类似问题 / I have searched existing issues and found no similar problems
+          required: true
+        - label: 我使用的是最新版本 / I am using the latest version
+          required: true
+        - label: 我已经阅读了文档 / I have read the documentation
+          required: true

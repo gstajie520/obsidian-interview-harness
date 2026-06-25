@@ -1,0 +1,124 @@
+name: ✨ 功能建议 / Feature Request
+description: 提出新功能建议 / Suggest a new feature
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！请详细描述你想要的功能。
+        Thank you for your suggestion! Please describe the feature you want in detail.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🎯 问题描述 / Problem Description
+      description: 你遇到了什么问题，或者想要解决什么需求？/ What problem are you encountering, or what need do you want to address?
+      placeholder: |
+        例如：我希望能够导出学习记录为 PDF 格式，方便打印复习
+        Example: I want to export learning records as PDF for easy printing and review
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 建议的解决方案 / Proposed Solution
+      description: 你希望如何实现这个功能？/ How do you propose to implement this feature?
+      placeholder: |
+        例如：
+        1. 在命令行界面添加"导出学习记录"选项
+        2. 支持选择日期范围
+        3. 生成 PDF 文件到 exports/ 目录
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 替代方案 / Alternatives Considered
+      description: 你是否考虑过其他实现方式？/ Have you considered other implementation approaches?
+      placeholder: |
+        例如：
+        - 方案 A：导出为 Markdown 格式
+        - 方案 B：集成到 Obsidian 插件
+    validations:
+      required: false
+
+  - type: dropdown
+    id: feature-type
+    attributes:
+      label: 📦 功能类型 / Feature Type
+      options:
+        - 新的 Agent / New Agent
+        - 用户界面改进 / UI Improvement
+        - 知识库扩展 / Knowledge Base Extension
+        - API / 工具集成 / API/Tool Integration
+        - 性能优化 / Performance Optimization
+        - 文档改进 / Documentation Improvement
+        - 其他 / Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: ⚡ 优先级 / Priority
+      description: 这个功能对你有多重要？/ How important is this feature to you?
+      options:
+        - 高 / High - 非常需要这个功能 / Really need this feature
+        - 中 / Medium - 有这个功能会更好 / Would be nice to have
+        - 低 / Low - 可以等待 / Can wait
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: 📖 使用场景 / Use Case
+      description: 描述具体的使用场景 / Describe specific use cases
+      placeholder: |
+        例如：
+        作为一名准备秋招的学生，我每天会练习 20-30 道题。
+        我希望每周生成一份学习报告，包含：
+        - 本周答题数量
+        - 各模块掌握情况
+        - 薄弱知识点列表
+        这样我可以更好地规划下周的学习重点。
+    validations:
+      required: false
+
+  - type: textarea
+    id: mockup
+    attributes:
+      label: 🎨 界面设计 / UI Mockup (可选 / Optional)
+      description: 如果涉及界面改动，可以上传截图或草图 / If UI changes are involved, you can upload screenshots or sketches
+      placeholder: |
+        你可以拖拽图片到这里，或者用文字描述
+        You can drag images here or describe in text
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📌 其他信息 / Additional Context
+      description: 任何其他有助于理解这个需求的信息 / Any other information that helps understand this requirement
+      placeholder: |
+        - 是否有类似的参考实现？
+        - 是否涉及第三方库？
+        - 预期的时间投入？
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✔️ 检查清单 / Checklist
+      options:
+        - label: 我已经搜索了现有的 Issues，没有发现类似建议 / I have searched existing issues and found no similar suggestions
+          required: true
+        - label: 这个功能符合项目的目标定位 / This feature aligns with the project's goals
+          required: true
+        - label: 我愿意协助实现这个功能 / I am willing to help implement this feature
+          required: false

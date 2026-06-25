@@ -1,0 +1,62 @@
+name: ❓ 问题求助 / Question
+description: 使用中遇到问题需要帮助 / Need help with usage
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        有使用上的问题？欢迎提问！
+        Have questions about usage? Feel free to ask!
+
+        💡 提示：如果是功能建议，请选择 "功能建议" 模板
+        💡 Tip: If it's a feature suggestion, please choose the "Feature Request" template
+
+  - type: textarea
+    id: question
+    attributes:
+      label: ❓ 问题描述 / Question
+      description: 你遇到了什么问题？/ What issue are you encountering?
+      placeholder: |
+        例如：
+        - 如何配置使用 OpenAI API 而不是 DeepSeek？
+        - 如何导入自己的题库？
+        - 如何修改复习间隔算法？
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: 🔍 已尝试的方法 / What Have You Tried
+      description: 你已经尝试过哪些解决方法？/ What solutions have you already tried?
+      placeholder: |
+        例如：
+        - 阅读了 CLAUDE.md 文档
+        - 搜索了 Issues 但没找到相关内容
+        - 尝试修改了配置文件但不生效
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 📋 相关信息 / Related Information
+      description: 提供有助于回答问题的上下文信息 / Provide context that helps answer the question
+      placeholder: |
+        - 操作系统：Windows 11
+        - Python 版本：3.9.7
+        - 数据库：MySQL 8.0
+        - 配置文件片段（不要包含 API Key）
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✔️ 检查清单 / Checklist
+      options:
+        - label: 我已经搜索了现有的 Issues 和 Discussions / I have searched existing Issues and Discussions
+          required: true
+        - label: 我已经阅读了相关文档 / I have read the relevant documentation
+          required: true

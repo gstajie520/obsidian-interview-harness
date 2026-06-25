@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/gstajie520/obsidian-interview-harness/discussions
+    about: 提问、分享经验、讨论想法 / Ask questions, share experiences, discuss ideas
+  - name: 📖 完整文档
+    url: https://github.com/gstajie520/obsidian-interview-harness/blob/main/CLAUDE.md
+    about: 阅读项目完整文档 / Read the complete project documentation
+  - name: 🚀 快速入门指南
+    url: https://github.com/gstajie520/obsidian-interview-harness/blob/main/QUICKSTART_FOR_BEGINNERS.md
+    about: 新手入门指南 / Beginner's guide
