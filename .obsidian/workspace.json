@@ -1,0 +1,246 @@
+{
+  "main": {
+    "id": "563af3aaa6eeb4ce",
+    "type": "split",
+    "children": [
+      {
+        "id": "d1a509fc3fbe2a30",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f2aa171b91322896",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "知识库/Java面试/本地缓存/✅如何实现多级缓存？.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "✅如何实现多级缓存？"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "2377090dbd5480dc",
+    "type": "split",
+    "children": [
+      {
+        "id": "1c3099e9fc452195",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e9a6e91bc3edadc0",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "9fa23187363397e8",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "30c02d8f28348186",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "60edf433eb83fe25",
+    "type": "split",
+    "children": [
+      {
+        "id": "356f7e50bd21048e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5db797cfbe779b76",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "反向链接"
+            }
+          },
+          {
+            "id": "56f19ba128c61a06",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "出链"
+            }
+          },
+          {
+            "id": "382ccb1bcaa44388",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "e03dfa195bbdf894",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "61245a9e128654a4",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "未命名.base",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "未命名 的大纲"
+            }
+          },
+          {
+            "id": "1136a0c28e3363eb",
+            "type": "leaf",
+            "state": {
+              "type": "opencode-view",
+              "state": {},
+              "icon": "opencode-logo",
+              "title": "OpenCode"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 768.5
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "obsidian42-brat:BRAT": false,
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false,
+      "opencode-obsidian:OpenCode": false
+    }
+  },
+  "active": "f2aa171b91322896",
+  "lastOpenFiles": [
+    "知识库/Java面试/本地缓存/✅你知道哪些缓存失效算法？.md",
+    "PLAN.md.tmp.13436.30f3150a9b35",
+    "requirements.txt",
+    "requirements.txt.tmp.13436.f0d60d06fa0a",
+    "scripts/init_database.py.tmp.13436.e1162199cec2",
+    "scripts/init_database.py.tmp.13436.82c21d492747",
+    "scripts/init_database.py",
+    "scripts/init_database.py.tmp.13436.09c1ca617dd7",
+    "Agent-Harness-Develop-Book/ref/Claude Code架构.png",
+    "Agent-Harness-Develop-Book/ref",
+    "Agent-Harness-Develop-Book/README.md",
+    "Agent-Harness-Develop-Book",
+    "面试题库",
+    "Agent Harness 面试助手.md",
+    "学习笔记模板.md",
+    "背题进度仪表盘.md",
+    "wiki/log.md",
+    "高频考点.md",
+    "AI 陪练模式.md",
+    "使用指南.md",
+    "Java八股文/本地缓存/✅你知道哪些缓存失效算法？.md",
+    "Java八股文/本地缓存/✅本地缓存和分布式缓存有什么区别？.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202305-202306.md",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/🧣🧣🧣项目实战课介绍&老用户福利.md",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-8.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-7.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-6.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-5.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-4.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-3.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-2.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-1.png",
+    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-0.png",
+    "Java八股文/📮📮📮必读📮📮📮/To读者&交流群/To读者&交流群.md",
+    "Java八股文/📮📮📮必读📮📮📮/AI课优惠券/AI课优惠券.md",
+    "Java八股文/📮📮📮必读📮📮📮/🔥🔥🔥更新Timeline_202603.md",
+    "Java八股文/📮📮📮必读📮📮📮/💯💯💯我该看哪些东西？.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202602.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202601.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202512.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202511.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202510.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202509.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202508.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202507.md",
+    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202506.md",
+    "未命名.canvas"
+  ]
+}

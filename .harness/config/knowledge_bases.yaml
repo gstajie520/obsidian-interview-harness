@@ -1,0 +1,81 @@
+# 知识库配置文件
+# 支持多个面试领域的题库
+
+knowledge_bases:
+  # Java 面试题库
+  java_interview:
+    name: "Java面试"
+    description: "Java 技术面试题库，包含基础、JVM、并发等54个模块"
+    path: "知识库/Java面试"
+    total_questions: 1346
+    modules:
+      - Java基础
+      - JVM
+      - Java并发
+      - 集合类
+      - Spring
+      - SpringBoot
+      - SpringCloud
+      - MySQL
+      - Redis
+      - 消息队列
+      - 分布式
+      - 微服务
+      - 设计模式
+      - 网络协议
+      # ... 其他模块
+    enabled: true
+    difficulty_levels:
+      - 初级
+      - 中级
+      - 高级
+
+  # Python 面试题库（示例，待扩展）
+  python_interview:
+    name: "Python面试"
+    description: "Python 技术面试题库"
+    path: "知识库/Python面试"
+    total_questions: 0
+    modules:
+      - Python基础
+      - 数据结构
+      - 面向对象
+      - Web框架
+      - 数据分析
+    enabled: false
+
+  # 前端面试题库（示例，待扩展）
+  frontend_interview:
+    name: "前端面试"
+    description: "前端技术面试题库"
+    path: "知识库/前端面试"
+    total_questions: 0
+    modules:
+      - JavaScript
+      - TypeScript
+      - React
+      - Vue
+      - CSS
+      - 浏览器原理
+    enabled: false
+
+  # 算法面试题库（示例，待扩展）
+  algorithm_interview:
+    name: "算法面试"
+    description: "数据结构与算法面试题库"
+    path: "知识库/算法面试"
+    total_questions: 0
+    modules:
+      - 数组
+      - 链表
+      - 树
+      - 图
+      - 动态规划
+      - 贪心算法
+    enabled: false
+
+# 全局配置
+settings:
+  default_knowledge_base: "java_interview"  # 默认使用的知识库
+  allow_mixed_practice: false                # 是否允许跨知识库练习
+  auto_switch: false                         # 是否自动切换知识库

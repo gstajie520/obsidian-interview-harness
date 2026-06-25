@@ -1,0 +1,33 @@
+name: obsidian-interview-harness
+version: 0.1.0
+vault_root: .
+language: zh
+
+runtime:
+  db: .harness/db/interview_harness.db
+  session_notes: 学习记录
+  raw_uploads: raw/interview_uploads
+  question_bank:
+    - 面试题库
+    - Java八股文
+
+memory:
+  prompt_memory:
+    - .harness/memory/MEMORY.md
+    - .harness/memory/USER.md
+  session_archive: sqlite_fts5
+  nudge_interval_turns: 5
+  flush_policy: after_each_practice_session
+
+agents:
+  orchestrator: .harness/agents/orchestrator.md
+  interviewer: .harness/agents/interviewer.md
+  supervisor: .harness/agents/supervisor.md
+  memory_reviewer: .harness/agents/memory-reviewer.md
+  material_curator: .harness/agents/material-curator.md
+
+tools:
+  upload_material: scripts/interview_harness.py upload
+  practice: scripts/interview_harness.py practice
+  session_search: scripts/interview_harness.py search
+  stats: scripts/interview_harness.py stats

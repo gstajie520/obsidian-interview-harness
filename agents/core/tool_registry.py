@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""工具注册表：把普通 Python 函数变成 LLM 可以调用的工具。
+
+这层代码负责三件事：
+1. 注册工具函数，并保存工具的名称、说明和参数 Schema。
+2. 生成 OpenAI function calling 需要的 `tools` 格式。
+3. 收到 LLM 的 tool_call 后，解析参数并真正执行 Python 函数。
+
+初学者可以把它理解成“工具电话簿”：LLM 只知道工具名和参数格式，
+真正执行工具的是这里的 `execute_tool()`。
+"""
+
+from __future__ import annotations
+
+import inspect
+import json
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Mapping, Optional, Union
+from typing import get_args, get_origin
+
+
+JsonDict = Dict[str, Any]
+ToolFunction = Callable[..., Any]
+
+
+class ToolRegistryError(Exception):
+    """工具注册表的基础异常。"""
+
+
+class ToolArgumentError(ToolRegistryError):
+    """当 LLM 传来的工具参数格式不正确时抛出。"""
+
+
+@dataclass(frozen=True)
+class ToolCallRequest:
+    """统一后的工具调用请求。
+
+    OpenAI SDK 可能返回对象，也可能在测试里使用 dict。为了后续执行简单，
+    我们先把它们统一成这个结构。
+    """
+
+    name: str
+    arguments: JsonDict
+    call_id: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class RegisteredTool:
+    """一个已注册工具的完整信息。"""
+
+    name: str
+    description: str
+    parameters: JsonDict
+    function: ToolFunction
+
+    def to_openai_schema(self) -> JsonDict:
+        """转换成 OpenAI function calling 需要的工具格式。"""
+        return {
+            "type": "function",
+            "function": {
+                "name": self.name,
+                "description": self.description,
+                "parameters": self.parameters,
+            },
+        }
+
+
+class ToolRegistry:
+    """工具注册与执行入口。"""
+
+    def __init__(self) -> None:
+        self._tools: Dict[str, RegisteredTool] = {}
+
+    @property
+    def tools(self) -> Dict[str, RegisteredTool]:
+        """返回已注册工具的副本，避免外部直接改内部状态。"""
+        return dict(self._tools)
+
+    def register(
+        self,
+        func: Optional[ToolFunction] = None,
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        parameters: Optional[JsonDict] = None,
+    ) -> Union[ToolFunction, Callable[[ToolFunction], ToolFunction]]:
+        """注册一个工具，支持两种写法。
+
+        写法一：`registry.register(func, name="xxx", parameters={...})`
+        写法二：`@registry.register(name="xxx")`
+
+        如果没有手写 `parameters`，会根据函数签名自动生成一个基础 Schema。
+        """
+        if func is None:
+
+            def decorator(target: ToolFunction) -> ToolFunction:
+                self.register(
+                    target,
+                    name=name,
+                    description=description,
+                    parameters=parameters,
+                )
+                return target
+
+            return decorator
+
+        tool_name = name or func.__name__
+        self._validate_tool_name(tool_name)
+
+        tool_description = (
+            description
+            or inspect.getdoc(func)
+            or f"执行工具 {tool_name}。"
+        )
+        tool_parameters = parameters or self._schema_from_signature(func)
+        if not isinstance(tool_parameters, dict):
+            raise ValueError("parameters 必须是 JSON Schema 字典")
+
+        self._tools[tool_name] = RegisteredTool(
+            name=tool_name,
+            description=tool_description,
+            parameters=tool_parameters,
+            function=func,
+        )
+        return func
+
+    def unregister(self, name: str) -> None:
+        """移除一个工具；不存在时不报错。"""
+        self._tools.pop(name, None)
+
+    def get_tool_schemas(self) -> list[JsonDict]:
+        """返回所有工具的 OpenAI function calling Schema。"""
+        return [tool.to_openai_schema() for tool in self._tools.values()]
+
+    async def execute_tool(self, tool_call: Any) -> Any:
+        """执行 LLM 发出的 tool_call。
+
+        这里不把解析错误继续抛给外层，而是返回 `{"error": "..."}`
+        作为工具执行结果。这样 Agent Loop 可以把错误反馈给 LLM 继续修正。
+        """
+        try:
+            request = self.parse_tool_call(tool_call)
+            return await self.execute(request.name, request.arguments)
+        except ToolRegistryError as exc:
+            return {"error": str(exc)}
+
+    async def execute(
+        self,
+        name: str,
+        arguments: Optional[Mapping[str, Any]] = None,
+    ) -> Any:
+        """按工具名执行已注册的 Python 函数。"""
+        if name not in self._tools:
+            return {"error": f"工具不存在: {name}"}
+
+        tool = self._tools[name]
+        kwargs = dict(arguments or {})
+        try:
+            result = tool.function(**kwargs)
+            if inspect.isawaitable(result):
+                result = await result
+            return result
+        except Exception as exc:
+            return {"error": f"工具 {name} 执行失败: {exc}"}
+
+    def parse_tool_call(self, tool_call: Any) -> ToolCallRequest:
+        """把 OpenAI SDK 对象或 dict 统一解析成 ToolCallRequest。"""
+        call_id = self._read_value(tool_call, "id")
+        function = self._read_value(tool_call, "function")
+        if function is None:
+            raise ToolArgumentError("tool_call.function 不能为空")
+
+        name = self._read_value(function, "name")
+        raw_arguments = self._read_value(function, "arguments", default={})
+        if not name:
+            raise ToolArgumentError("tool_call.function.name 不能为空")
+
+        return ToolCallRequest(
+            name=str(name),
+            arguments=self._parse_arguments(raw_arguments),
+            call_id=str(call_id) if call_id else None,
+        )
+
+    def has_tool(self, name: str) -> bool:
+        """判断某个工具名是否已经注册。"""
+        return name in self._tools
+
+    def __contains__(self, name: object) -> bool:
+        return isinstance(name, str) and self.has_tool(name)
+
+    @staticmethod
+    def _read_value(
+        source: Any,
+        key: str,
+        default: Any = None,
+    ) -> Any:
+        """同时支持从 dict 和对象属性读取字段。"""
+        if isinstance(source, Mapping):
+            return source.get(key, default)
+        return getattr(source, key, default)
+
+    @staticmethod
+    def _parse_arguments(raw_arguments: Any) -> JsonDict:
+        """解析 LLM 传来的工具参数。
+
+        OpenAI 的 `function.arguments` 通常是 JSON 字符串；测试或本地调用
+        也可能直接传 dict。这里统一转换为 dict。
+        """
+        if raw_arguments in (None, ""):
+            return {}
+        if isinstance(raw_arguments, Mapping):
+            return dict(raw_arguments)
+        if isinstance(raw_arguments, str):
+            try:
+                parsed = json.loads(raw_arguments)
+            except json.JSONDecodeError as exc:
+                raise ToolArgumentError(
+                    f"工具参数不是合法 JSON: {raw_arguments}"
+                ) from exc
+            if not isinstance(parsed, dict):
+                raise ToolArgumentError("工具参数必须是 JSON 对象")
+            return parsed
+        raise ToolArgumentError("工具参数必须是 dict 或 JSON 对象字符串")
+
+    @staticmethod
+    def _validate_tool_name(name: str) -> None:
+        """校验工具名，避免传给 OpenAI 时被拒绝。"""
+        if not name:
+            raise ValueError("工具名不能为空")
+        allowed = set(
+            "abcdefghijklmnopqrstuvwxyz"
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            "0123456789_-"
+        )
+        if any(char not in allowed for char in name):
+            raise ValueError("工具名只能包含字母、数字、下划线和短横线")
+
+    @classmethod
+    def _schema_from_signature(cls, func: ToolFunction) -> JsonDict:
+        """根据函数参数自动生成最小可用的 JSON Schema。"""
+        signature = inspect.signature(func)
+        properties: JsonDict = {}
+        required: list[str] = []
+
+        for param_name, param in signature.parameters.items():
+            if param.kind in (
+                inspect.Parameter.VAR_POSITIONAL,
+                inspect.Parameter.VAR_KEYWORD,
+            ):
+                continue
+            properties[param_name] = cls._annotation_to_schema(
+                param.annotation
+            )
+            if param.default is inspect.Parameter.empty:
+                required.append(param_name)
+
+        schema: JsonDict = {"type": "object", "properties": properties}
+        if required:
+            schema["required"] = required
+        return schema
+
+    @classmethod
+    def _annotation_to_schema(cls, annotation: Any) -> JsonDict:
+        """把常见 Python 类型标注转换为 JSON Schema 类型。"""
+        if annotation is inspect.Parameter.empty:
+            return {"type": "string"}
+
+        origin = get_origin(annotation)
+        args = get_args(annotation)
+        if origin is Union:
+            non_none_args = [arg for arg in args if arg is not type(None)]
+            if len(non_none_args) == 1:
+                return cls._annotation_to_schema(non_none_args[0])
+
+        if origin in (list, tuple, set):
+            return {"type": "array"}
+        if origin in (dict, Mapping):
+            return {"type": "object"}
+
+        mapping = {
+            str: "string",
+            int: "integer",
+            float: "number",
+            bool: "boolean",
+            dict: "object",
+            list: "array",
+        }
+        return {"type": mapping.get(annotation, "string")}

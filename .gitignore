@@ -1,0 +1,108 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虚拟环境
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 日志
+*.log
+.harness/logs/
+
+# 配置文件中的敏感信息
+# 注意：不要提交真实的 API key
+.env
+.env.local
+
+# 临时文件
+*.tmp
+*.bak
+*.backup
+.cache/
+
+# 编译文件
+*.pyc
+*.pyo
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# 测试覆盖
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# 机器学习模型
+*.pkl
+*.h5
+*.model
+
+# 向量数据库
+chroma_data/
+*.index
+
+# Web UI 编译产物
+web_ui/dist/
+web_ui/build/
+web_ui/node_modules/
+web_ui/.next/
+
+# 系统文件
+Thumbs.db
+desktop.ini
+
+# 备份文件
+*_backup/
+*_old/
+
+# 大文件（学习记录中的归档）
+学习记录/**/session-archive/
+.harness/memory/session-archive/
+
+# 本地配置（可能包含敏感信息）
+.harness/config/harness.yaml
+.harness/config/harness.local.yaml
+.harness/config/*.local.yaml
+
+# 私人知识库（不上传）
+知识库/Java面试/
