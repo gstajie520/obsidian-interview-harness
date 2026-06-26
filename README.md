@@ -403,16 +403,16 @@ vim agents/definitions/interviewer.md
 
 1. **Fork 项目** → **创建分支** → **提交 PR**
 2. **代码风格**: PEP 8 规范
-3. **提交规范**: 使用约定式提交（Conventional Commits）
+3. **提交规范**: 使用中文约定式提交（Conventional Commits）
    ```bash
-   feat: 添加 XXX 功能
-   fix: 修复 XXX 问题
-   docs: 更新文档
-   refactor: 重构 XXX 模块
+   feat(agents): 添加 XXX 功能
+   fix(config): 修复 XXX 问题
+   docs(readme): 更新文档
+   refactor(core): 重构 XXX 模块
    ```
 4. **测试**: 新功能必须包含单元测试
 
-详细指南：[CONTRIBUTING.md](CONTRIBUTING.md)（待创建）
+详细指南：[CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

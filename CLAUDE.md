@@ -6,6 +6,30 @@
 
 ---
 
+## AI 协作执行规则
+
+本节是给 AI 编码助手看的硬性执行规则。执行代码修改、文档修改或 Git 提交时，必须优先遵守本节。
+
+### Git 提交硬性规则
+
+- 提交前必须读取 `GIT_RULES.md`，并检查 `git status --short`。
+- 提交信息必须使用中文描述，禁止纯英文 subject。
+- 提交信息必须使用格式：`<type>(<scope>): <中文描述>`。
+- `scope` 必须填写，使用小写英文、数字、短横线或下划线，例如 `agents`、`python-comments`、`git-rules`。
+- 允许的 `type`：`feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore`、`perf`。
+- 正确示例：`docs(python-comments): 补充初学者代码注释`。
+- 错误示例：`refactor: standardize agents project structure`，原因是缺少 scope 且 subject 为英文。
+- `git add`、`git commit`、`git reset`、`git config` 等会写入 `.git` 的命令禁止并行执行。
+- 提交后必须执行 `git status --short` 和 `git log -1 --oneline` 验证结果。
+
+本仓库使用 `.githooks/commit-msg` 校验提交信息。若 hook 未启用，执行：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+---
+
 ## 📌 项目概述
 
 这是一个基于 **Agent Harness 架构**的**通用智能面试助手系统**，支持多个面试领域（Java、Python、前端、算法等）。系统包含 6 个协作 Agent，具备持久记忆、智能调度、自动进化等能力。
@@ -381,15 +405,15 @@ agents:
 
 **单人开发模式**：
 
-- ✅ **直接在 master 分支开发** - 无需创建新分支
+- ✅ **直接在 main 分支开发** - 无需创建新分支
 - ✅ **每完成一个功能就提交** - 保持提交频率
-- ✅ **使用约定式提交** - feat/fix/docs/refactor 等
+- ✅ **使用中文约定式提交** - `<type>(<scope>): <中文描述>`
 
 **提交示例**:
 ```bash
 # 简单提交
 git add .
-git commit -m "feat: 实现 Agent Loop 核心循环"
+git commit -m "feat(agent-loop): 实现 Agent Loop 核心循环"
 
 # 详细提交
 git commit -m "feat(agent-loop): 实现 TAOR 循环

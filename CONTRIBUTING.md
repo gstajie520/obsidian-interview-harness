@@ -107,17 +107,17 @@ def calculate_next_review(self, score: float) -> int:
 
 #### 提交信息规范
 
-我们使用 **约定式提交（Conventional Commits）**：
+我们使用 **中文约定式提交（Conventional Commits）**：
 
 ```bash
 # 格式
-<类型>(<范围>): <简短描述>
+<type>(<scope>): <中文描述>
 
 <详细描述>（可选）
 
 <关联 Issue>（可选）
 
-# 类型
+# 类型（type）
 feat:     新功能
 fix:      Bug 修复
 docs:     文档更新
@@ -125,6 +125,12 @@ style:    代码格式（不影响功能）
 refactor: 重构
 test:     测试相关
 chore:    构建/工具链
+perf:     性能优化
+
+# 硬性要求
+# 1. scope 必须填写
+# 2. subject 必须包含中文，禁止纯英文
+# 3. AI 提交前必须先阅读 GIT_RULES.md
 
 # 示例
 feat(agent-loop): 添加超时控制机制

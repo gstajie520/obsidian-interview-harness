@@ -6,6 +6,30 @@
 
 ---
 
+## AI 协作执行规则
+
+本节是给 Claude、Codex、Cursor 等 AI 编码助手看的执行约束，优先级高于下面的架构说明。
+
+### Git 提交规则
+
+AI 执行 `git commit` 前必须先读取 `GIT_RULES.md`，并按下面规则提交：
+
+- 提交信息必须使用中文描述，禁止纯英文 subject。
+- 提交信息必须使用格式：`<type>(<scope>): <中文描述>`。
+- `scope` 必须填写，使用小写英文、数字、短横线或下划线，例如 `agents`、`python-comments`、`git-rules`。
+- 允许的 `type`：`feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore`、`perf`。
+- 示例：`docs(git-rules): 强化提交规范执行`。
+- `git add`、`git commit`、`git reset`、`git config` 等会写入 `.git` 的命令禁止并行执行，只能单进程顺序执行。
+- 提交后必须执行 `git status --short` 和 `git log -1 --oneline`，确认工作区干净且提交信息符合规则。
+
+仓库已提供 `.githooks/commit-msg` 校验提交信息。若本地未生效，执行：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+---
+
 ## 📊 系统概览
 
 本系统基于 **Agent Harness** 架构设计，包含 **6 个协作 Agent**，为用户提供智能化的面试准备服务。
