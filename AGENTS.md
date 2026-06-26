@@ -19,6 +19,8 @@ AI 执行 `git commit` 前必须先读取 `GIT_RULES.md`，并按下面规则提
 - `scope` 必须填写，使用小写英文、数字、短横线或下划线，例如 `agents`、`python-comments`、`git-rules`。
 - 允许的 `type`：`feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore`、`perf`。
 - 示例：`docs(git-rules): 强化提交规范执行`。
+- 每次完成文件修改并验证后必须提交；同一任务内相关文件可以合并为一个提交。
+- 除非用户明确说“不要提交”或“先别提交”，否则最终回复前不能留下未提交修改。
 - `git add`、`git commit`、`git reset`、`git config` 等会写入 `.git` 的命令禁止并行执行，只能单进程顺序执行。
 - 提交后必须执行 `git status --short` 和 `git log -1 --oneline`，确认工作区干净且提交信息符合规则。
 

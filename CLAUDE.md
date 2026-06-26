@@ -19,6 +19,8 @@
 - 允许的 `type`：`feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore`、`perf`。
 - 正确示例：`docs(python-comments): 补充初学者代码注释`。
 - 错误示例：`refactor: standardize agents project structure`，原因是缺少 scope 且 subject 为英文。
+- 每次完成文件修改并验证后必须提交；同一任务内相关文件可以合并为一个提交。
+- 除非用户明确说“不要提交”或“先别提交”，否则最终回复前不能留下未提交修改。
 - `git add`、`git commit`、`git reset`、`git config` 等会写入 `.git` 的命令禁止并行执行。
 - 提交后必须执行 `git status --short` 和 `git log -1 --oneline` 验证结果。
 
