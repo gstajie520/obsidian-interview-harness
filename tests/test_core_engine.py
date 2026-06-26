@@ -22,8 +22,14 @@ from agents.core.agent_loop import AgentLoop, AgentState
 from agents.core.base_agent import Agent
 from agents.core.context_manager import ContextManager
 from agents.core.tool_registry import ToolRegistry
-from agents.roles.interviewer_agent import InterviewerAgent
-from agents.roles.interviewer_agent import InterviewerAgent
+from agents.roles import (
+    AnalyzerAgent,
+    BuddyAgent,
+    InterviewerAgent,
+    LinkerAgent,
+    SchedulerAgent,
+    SupervisorAgent,
+)
 
 
 def make_tool_call(call_id: str, name: str, arguments: dict[str, Any]) -> Any:
@@ -203,6 +209,21 @@ def test_agent_llm_config_can_be_overridden_by_environment(
     assert agent.config["llm"]["base_url"] == "https://api.deepseek.com"
 
 
+def test_agent_loads_prompt_from_configured_definition_path() -> None:
+    agent = Agent(
+        "interviewer",
+        config={
+            "agents": {
+                "interviewer": {
+                    "prompt_template": "agents/definitions/interviewer.md"
+                }
+            }
+        },
+    )
+
+    assert "Interviewer Agent" in agent.system_prompt
+
+
 def test_context_manager_compresses_old_messages() -> None:
     manager = ContextManager(
         max_tokens=120,
@@ -236,32 +257,15 @@ def test_context_manager_skips_compression_when_under_threshold() -> None:
     assert result is not messages
 
 
-def test_legacy_harness_entrypoints_still_import() -> None:
-    """旧 `.harness` 文件仍可作为兼容入口按路径导入。"""
-    import importlib.util
-    import sys
-    from pathlib import Path
-
-    root_dir = Path(__file__).resolve().parents[1]
-    legacy_path = root_dir / ".harness" / "agents" / "agent_loop.py"
-    spec = importlib.util.spec_from_file_location(
-        "legacy_agent_loop_for_test",
-        legacy_path,
-    )
-    assert spec is not None
-    assert spec.loader is not None
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["legacy_agent_loop_for_test"] = module
-    spec.loader.exec_module(module)
-
-    assert module.AgentLoop is AgentLoop
-
-
 def test_interviewer_agent_standard_entrypoint_imports() -> None:
     """面试官 Agent 应该能从标准 `agents.roles` 入口导入。"""
     assert InterviewerAgent.__name__ == "InterviewerAgent"
 
 
-def test_interviewer_agent_standard_entrypoint_imports() -> None:
-    """面试官 Agent 应该能从标准 `agents.roles` 入口导入。"""
-    assert InterviewerAgent.__name__ == "InterviewerAgent"
+def test_all_role_entrypoints_import() -> None:
+    """六个 Agent 角色都应该有稳定的标准导入入口。"""
+    assert SchedulerAgent.__name__ == "SchedulerAgent"
+    assert LinkerAgent.__name__ == "LinkerAgent"
+    assert AnalyzerAgent.__name__ == "AnalyzerAgent"
+    assert SupervisorAgent.__name__ == "SupervisorAgent"
+    assert BuddyAgent.__name__ == "BuddyAgent"

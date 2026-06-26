@@ -3,12 +3,13 @@
 > **原则**: 只补充必要的核心功能，避免过度设计  
 > **对比基准**: Agent-Harness-Develop-Book（2960行生产级实践指南）  
 > **日期**: 2026-06-24
+> **当前状态**: P0 核心引擎已迁移到 `agents/core/`，本文保留为架构对比和决策记录。
 
 ---
 
 ## 📊 核心发现
 
-经过深入分析，当前项目的主要问题是：
+经过深入分析，当时项目的主要问题是：
 
 ### ✅ 已做得很好的部分
 
@@ -27,7 +28,9 @@
 
 ### 1. Agent Loop (TAOR 闭环) ⭐⭐⭐⭐⭐
 
-**问题**: 当前 `base_agent.py` 只有 `call_llm()` 单次调用，**没有循环**
+**当时问题**: `base_agent.py` 只有 `call_llm()` 单次调用，**没有循环**
+
+**当前状态**: 已由 `agents/core/agent_loop.py` 提供 TAOR 循环。
 
 **影响**: 
 - ❌ 无法自主完成多步骤任务
@@ -87,7 +90,9 @@ class AgentLoop:
 
 ### 2. 工具注册与调用系统 ⭐⭐⭐⭐
 
-**问题**: 当前只有工具函数（`question_tools`, `memory_tools`），**没有注册机制**
+**当时问题**: 只有工具函数（`question_tools`, `memory_tools`），**没有注册机制**
+
+**当前状态**: 已由 `agents/core/tool_registry.py` 提供注册、Schema 生成和调用执行。
 
 **影响**:
 - ❌ LLM 不知道有哪些工具可用
@@ -171,7 +176,9 @@ response = llm.create(
 
 ### 3. 上下文管理（Token 监控 + 压缩）⭐⭐⭐⭐
 
-**问题**: 当前没有 Token 统计和压缩，长对话会超限
+**当时问题**: 没有 Token 统计和压缩，长对话会超限
+
+**当前状态**: 已由 `agents/core/context_manager.py` 提供 Token 统计和压缩策略。
 
 **影响**:
 - ❌ 复习10道题以上就可能超限
@@ -383,15 +390,14 @@ async def execute_tools_parallel(self, tool_calls):
 ## 📁 文件结构（精简版）
 
 ```
-.harness/agents/
-├── base_agent.py           ✅ 已有
-├── agent_loop.py           ⏳ 新增 - Agent Loop
-├── tool_registry.py        ⏳ 新增 - 工具注册
-├── context_manager.py      ⏳ 新增 - 上下文管理
-└── retry_handler.py        ⏳ 新增 - 重试机制（可选）
+agents/core/
+├── base_agent.py           ✅ Agent 基类
+├── agent_loop.py           ✅ Agent Loop
+├── tool_registry.py        ✅ 工具注册
+└── context_manager.py      ✅ 上下文管理
 ```
 
-**仅需 3-4 个新文件！**
+正式代码统一放在 `agents/` 包内，`.harness/` 只保留配置、数据库和记忆文件。
 
 ---
 

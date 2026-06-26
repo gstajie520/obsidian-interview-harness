@@ -4,7 +4,7 @@
 
 具体的面试官、复习调度器等 Agent 都可以继承这个类。它只提供公共能力：
 - 读取 `.harness/config/harness.yaml`
-- 读取 `.harness/prompts/{agent_name}.md`
+- 优先读取 `agents/definitions/{agent_name}.md`
 - 创建 OpenAI 兼容客户端
 - 保存简单的短期对话历史
 """
@@ -104,11 +104,30 @@ class Agent:
 
     def load_system_prompt(self) -> str:
         """加载当前 Agent 的 system prompt。"""
-        prompt_file = (
-            ROOT_DIR / ".harness" / "prompts" / f"{self.agent_name}.md"
+        agent_config = {}
+        agents_config = self.config.get("agents", {})
+        if isinstance(agents_config, dict):
+            agent_config = agents_config.get(self.agent_name, {}) or {}
+
+        # 先尊重配置文件；找不到时再回退到标准 agents/definitions 目录。
+        prompt_candidates = []
+        configured_prompt = agent_config.get("prompt_template")
+        if configured_prompt:
+            prompt_candidates.append(ROOT_DIR / str(configured_prompt))
+
+        prompt_candidates.extend(
+            [
+                ROOT_DIR
+                / "agents"
+                / "definitions"
+                / f"{self.agent_name}.md",
+            ]
         )
-        if prompt_file.exists():
-            return prompt_file.read_text(encoding="utf-8")
+
+        for prompt_file in prompt_candidates:
+            if prompt_file.exists():
+                return prompt_file.read_text(encoding="utf-8")
+
         return f"你是一个名为 {self.agent_name} 的 AI 面试助手。"
 
     def add_message(self, role: str, content: str) -> None:

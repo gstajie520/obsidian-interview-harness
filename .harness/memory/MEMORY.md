@@ -4,7 +4,7 @@
 
 - The vault combines Obsidian Markdown cards with a local Agent-Harness style interview loop.
 - Uploaded materials are copied into `raw/interview_uploads/` and then transformed into `面试题库/` cards.
-- Historical answers, scores, and feedback are stored in `.harness/db/interview_harness.db`.
+- Historical answers, scores, and feedback are stored in `.harness/db/learning.db`.
 
 ## Weak Topics
 

@@ -23,7 +23,7 @@
 - **框架**: FastAPI（REST API + WebSocket）
 - **数据库**: MySQL 8.0+（生产级持久化）
 - **ORM**: PyMySQL（数据库驱动）
-- **LLM**: OpenAI SDK（兼容 gancaopu.com API）
+- **LLM**: OpenAI SDK（兼容 DeepSeek API，默认模型 deepseek-chat，可配置）
 - **配置**: PyYAML + python-dotenv
 
 #### 前端
@@ -70,7 +70,34 @@ AI-Knowledge/
 │   ├── 错题本/
 │   └── 知识图谱/
 │
-├── .harness/                            # Agent Harness 核心
+├── agents/                              # 标准 Python Agents 包（正式实现）
+│   ├── core/                            # 通用执行引擎
+│   │   ├── base_agent.py                ✅ Agent 基类
+│   │   ├── agent_loop.py                ✅ TAOR 循环
+│   │   ├── tool_registry.py             ✅ 工具注册
+│   │   └── context_manager.py           ✅ 上下文管理
+│   │
+│   ├── roles/                           # 具体 Agent 角色
+│   │   ├── interviewer_agent.py         ✅ 面试官
+│   │   ├── supervisor_agent.py          ⏳ 监督助手
+│   │   ├── scheduler_agent.py           ⏳ 复习调度器
+│   │   ├── linker_agent.py              ⏳ 知识关联器
+│   │   ├── analyzer_agent.py            ⏳ 错题分析师
+│   │   └── buddy_agent.py               ⏳ 陪练伙伴
+│   │
+│   ├── tools/                           # Agent 可调用工具
+│   │   ├── question_tools.py            ✅ 题库操作
+│   │   └── memory_tools.py              ✅ 记忆系统
+│   │
+│   └── definitions/                     # Agent 角色定义文档
+│       ├── interviewer.md               ✅ 面试官
+│       ├── supervisor.md                ⏳
+│       ├── scheduler.md                 ⏳
+│       ├── linker.md                    ⏳
+│       ├── analyzer.md                  ⏳
+│       └── buddy.md                     ⏳
+│
+├── .harness/                            # 配置、记忆和数据库
 │   ├── config/
 │   │   ├── harness.yaml                 ✅ 主配置
 │   │   └── agents_config.yaml           ⏳ Agent 配置
@@ -78,31 +105,6 @@ AI-Knowledge/
 │   ├── db/
 │   │   ├── schema.sql                   ✅ 数据库 Schema
 │   │   └── learning.db                  ✅ SQLite 数据库
-│   │
-│   ├── agents/                          # Agent 实现
-│   │   ├── base_agent.py                ✅ Agent 基类
-│   │   ├── interviewer_agent.py         ⏳ 面试官
-│   │   ├── supervisor_agent.py          ⏳ 监督助手
-│   │   ├── scheduler_agent.py           ⏳ 复习调度器
-│   │   ├── linker_agent.py              ⏳ 知识关联器
-│   │   ├── analyzer_agent.py            ⏳ 错题分析师
-│   │   └── buddy_agent.py               ⏳ 陪练伙伴
-│   │
-│   ├── prompts/                         # System Prompts
-│   │   ├── interviewer.md               ✅ 面试官
-│   │   ├── supervisor.md                ⏳
-│   │   ├── scheduler.md                 ⏳
-│   │   ├── linker.md                    ⏳
-│   │   ├── analyzer.md                  ⏳
-│   │   └── buddy.md                     ⏳
-│   │
-│   ├── tools/                           # 工具实现
-│   │   ├── question_tools.py            ✅ 题库操作
-│   │   ├── memory_tools.py              ✅ 记忆系统
-│   │   ├── scheduler_tools.py           ⏳ 调度算法
-│   │   ├── linker_tools.py              ⏳ 知识图谱
-│   │   ├── analyzer_tools.py            ⏳ 错误分析
-│   │   └── obsidian_tools.py            ⏳ Obsidian API
 │   │
 │   ├── memory/                          # 记忆文件
 │   │   ├── USER.md                      ⏳ 用户画像
@@ -164,8 +166,8 @@ AI-Knowledge/
 python scripts/init_database_mysql.py
 
 # 3. 测试工具
-python .harness/tools/question_tools.py
-python .harness/tools/memory_tools.py
+python -m agents.tools.question_tools
+python -m agents.tools.memory_tools
 ```
 
 ---
@@ -192,7 +194,7 @@ python .harness/tools/memory_tools.py
 
 > **关键**: LLM 必须知道有哪些工具可用，才能生成 tool_calls
 
-**文件**: `.harness/agents/tool_registry.py`
+**文件**: `agents/core/tool_registry.py`
 
 **核心功能**:
 - 工具注册（函数 + Schema）
@@ -290,7 +292,7 @@ registry.register(
 
 > **核心**: Think → Act → Observe → Reflect 循环
 
-**文件**: `.harness/agents/agent_loop.py`
+**文件**: `agents/core/agent_loop.py`
 
 **核心功能**:
 - TAOR 四步循环
@@ -376,7 +378,7 @@ class AgentLoop:
 
 > **目的**: 防止长对话超出 Context Window
 
-**文件**: `.harness/agents/context_manager.py`
+**文件**: `agents/core/context_manager.py`
 
 **核心功能**:
 - Token 统计（使用 tiktoken）
@@ -462,7 +464,7 @@ class ContextManager:
 
 ##### 4. 重试机制 - 0.5小时
 
-**文件**: `.harness/agents/retry_handler.py`
+**文件**: `agents/core/retry_handler.py`
 
 **功能**: 网络抖动、API 限流自动重试
 
@@ -527,10 +529,10 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from .harness.agents.base_agent import Agent
-from .harness.agents.tool_registry import ToolRegistry
-from .harness.agents.agent_loop import AgentLoop
-from .harness.agents.context_manager import ContextManager
+from agents.core.base_agent import Agent
+from agents.core.tool_registry import ToolRegistry
+from agents.core.agent_loop import AgentLoop
+from agents.core.context_manager import ContextManager
 
 # 注册测试工具
 def mock_tool(arg: str):
@@ -617,7 +619,7 @@ python scripts/test_agent_loop.py
 
 #### 1.1 实现面试官 Agent (1小时)
 
-**文件**: `.harness/agents/interviewer_agent.py`
+**文件**: `agents/roles/interviewer_agent.py`
 
 **功能需求**:
 - 从薄弱模块中选题
@@ -793,7 +795,7 @@ curl http://localhost:8000/api/stats/overview
 
 #### 3.1 复习调度器 Agent (1小时)
 
-**文件**: `.harness/agents/scheduler_agent.py`
+**文件**: `agents/roles/scheduler_agent.py`
 
 **核心算法**: SuperMemo SM-2
 
@@ -811,7 +813,7 @@ def calculate_next_review(self, question_id, performance):
 
 #### 3.2 监督助手 Agent (1小时)
 
-**文件**: `.harness/agents/supervisor_agent.py`
+**文件**: `agents/roles/supervisor_agent.py`
 
 **功能**:
 - 生成学习报告（日报、周报）
@@ -823,8 +825,8 @@ def calculate_next_review(self, question_id, performance):
 
 #### 3.3 知识关联器 Agent (1.5小时)
 
-**文件**: `.harness/agents/linker_agent.py`  
-**工具**: `.harness/tools/linker_tools.py`
+**文件**: `agents/roles/linker_agent.py`  
+**工具**: `agents/tools/linker_tools.py`
 
 **功能**:
 - 基于 TF-IDF 计算题目相似度
@@ -846,7 +848,7 @@ def find_related_questions(question_id, top_k=5):
 
 #### 3.4 错题分析师 Agent (30分钟)
 
-**文件**: `.harness/agents/analyzer_agent.py`
+**文件**: `agents/roles/analyzer_agent.py`
 
 **功能**:
 - 分析错误原因（概念混淆/细节遗漏/场景不足/前置缺失）
@@ -855,7 +857,7 @@ def find_related_questions(question_id, top_k=5):
 
 #### 3.5 陪练伙伴 Agent (30分钟)
 
-**文件**: `.harness/agents/buddy_agent.py`
+**文件**: `agents/roles/buddy_agent.py`
 
 **功能**:
 - 友好鼓励
@@ -986,7 +988,7 @@ ws.onmessage = (event) => {
 
 #### 6.1 Obsidian 工具 (1小时)
 
-**文件**: `.harness/tools/obsidian_tools.py`
+**文件**: `agents/tools/obsidian_tools.py`
 
 **功能**:
 - 自动生成学习记录笔记
@@ -1294,8 +1296,8 @@ python scripts/import_questions.py
 ```
 
 3. **开始实现面试官 Agent**
-   - 参考 `.harness/agents/base_agent.py`
-   - 参考 `.harness/prompts/interviewer.md`
+   - 参考 `agents/core/base_agent.py`
+   - 参考 `agents/definitions/interviewer.md`
 
 ### 建议顺序
 

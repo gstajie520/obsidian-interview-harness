@@ -45,7 +45,7 @@ AI: "今天25度，晴天☀️"  ✅
 
 **在我们的项目中**:
 ```python
-# .harness/agents/interviewer_agent.py
+# agents/roles/interviewer_agent.py
 class InterviewerAgent:
     """面试官 Agent - 专门出题、评分、追问"""
     
@@ -71,7 +71,7 @@ class InterviewerAgent:
 
 **在我们的项目中**:
 ```python
-# .harness/agents/interviewer_agent.py (注册工具)
+# agents/roles/interviewer_agent.py（注册工具）
 self.tool_registry.register(
     name="get_weak_modules",
     description="获取用户最薄弱的模块列表，用于针对性出题",
@@ -486,15 +486,15 @@ self.tool_registry.register(
 
 ### 必读文档（按优先级排序）
 
-1. **ARCHITECTURE_MINDMAP.md** ⭐⭐⭐⭐⭐
-   - 完整的系统流程图
-   - 数据流图
-   - 学习路径
+1. **README.md** ⭐⭐⭐⭐⭐
+   - 快速启动
+   - 当前目录结构
+   - 常用命令
 
-2. **HARNESS_COMPLETION_REPORT.md** ⭐⭐⭐⭐
-   - 已完成的功能清单
-   - 验证报告
-   - 常见问题排查
+2. **AGENTS.md** ⭐⭐⭐⭐
+   - 六个 Agent 的职责
+   - 协作流程
+   - 配置说明
 
 3. **CLAUDE.md** ⭐⭐⭐
    - 项目概览
@@ -511,17 +511,17 @@ self.tool_registry.register(
 ```
 第 1 天：理解执行流程
   ├─ scripts/cli_interview.py (入口)
-  ├─ .harness/agents/interviewer_agent.py (Agent 主体)
-  └─ .harness/agents/agent_loop.py (TAOR 循环)
+  ├─ agents/roles/interviewer_agent.py (Agent 主体)
+  └─ agents/core/agent_loop.py (TAOR 循环)
 
 第 2 天：理解工具系统
-  ├─ .harness/agents/tool_registry.py (工具注册)
-  ├─ .harness/tools/question_tools.py (题库工具)
-  └─ .harness/tools/memory_tools.py (记忆工具)
+  ├─ agents/core/tool_registry.py (工具注册)
+  ├─ agents/tools/question_tools.py (题库工具)
+  └─ agents/tools/memory_tools.py (记忆工具)
 
 第 3 天：理解高级特性
-  ├─ .harness/agents/context_manager.py (上下文压缩)
-  └─ HARNESS_IMPLEMENTATION.md (后续扩展计划)
+  ├─ agents/core/context_manager.py (上下文压缩)
+  └─ PLAN.md (后续扩展计划)
 ```
 
 ---
@@ -659,7 +659,7 @@ if tool_name not in self._tools:
 2. **查看数据库**
    ```bash
    # SQLite
-   sqlite3 .harness/data/interview.db
+   sqlite3 .harness/db/learning.db
    SELECT * FROM learning_records LIMIT 5;
    ```
 
@@ -673,7 +673,7 @@ if tool_name not in self._tools:
 
 | 报错 | 原因 | 解决方案 |
 |------|------|----------|
-| `ModuleNotFoundError: No module named '.harness'` | Python 路径问题 | 在项目根目录运行 |
+| `ModuleNotFoundError: No module named 'agents'` | Python 路径问题 | 在项目根目录运行 |
 | `Connection refused` | LLM API 无法访问 | 检查网络、API key |
 | `Unexpected argument 'tools'` | LLM 不支持 function calling | 确认使用支持的模型（如 deepseek-chat） |
 
@@ -699,4 +699,4 @@ if tool_name not in self._tools:
 
 ---
 
-**祝你学习顺利！如有疑问，随时查看 `ARCHITECTURE_MINDMAP.md` 复习流程图。** 🚀
+**祝你学习顺利！如有疑问，优先查看 `README.md` 和 `AGENTS.md`。** 🚀

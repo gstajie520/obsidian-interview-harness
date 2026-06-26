@@ -1,7 +1,7 @@
 # Agents 项目结构说明
 
 这个目录是 AI 面试陪练系统的正式代码入口。以后新增 Agent、工具或核心能力，
-优先放在这里，不再放到隐藏目录 `.harness/agents` 里。
+都放在这里，避免把代码分散到 `.harness/` 这样的配置目录里。
 
 ## 目录分层
 
@@ -30,5 +30,5 @@ from agents.core.agent_loop import AgentLoop
 from agents.tools import memory_tools
 ```
 
-`.harness/` 现在主要保留配置、数据库、记忆文件和旧代码兼容入口。新开发时请优先
-使用 `agents/`。
+`.harness/` 现在只保留配置、数据库和记忆文件。新开发时请只从 `agents/`
+导入代码。

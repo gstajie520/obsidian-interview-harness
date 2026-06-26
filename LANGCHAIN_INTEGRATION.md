@@ -52,7 +52,7 @@ def get_random_question(module: str = None) -> dict:
     Returns:
         题目字典，包含 question_id, title, content, module
     """
-    from .harness.tools.question_tools import get_random_question as _get_question
+    from agents.tools.question_tools import get_random_question as _get_question
     question = _get_question(module)
     return question.to_dict() if question else None
 
@@ -68,7 +68,7 @@ def evaluate_answer(question_id: str, user_answer: str, scores: dict) -> str:
     Returns:
         保存结果确认信息
     """
-    from .harness.tools.memory_tools import add_learning_record
+    from agents.tools.memory_tools import add_learning_record
     record_id = add_learning_record(
         question_id=question_id,
         user_answer=user_answer,
@@ -296,17 +296,18 @@ result = app.invoke(initial_state)
 ## 📂 目录结构调整
 
 ```
-.harness/agents/
-├── base_agent.py               # 原生 Agent 基类
-├── agent_loop.py               # 原生 Agent Loop
-├── tool_registry.py            # 原生工具注册
+agents/
+├── core/
+│   ├── base_agent.py           # 原生 Agent 基类
+│   ├── agent_loop.py           # 原生 Agent Loop
+│   └── tool_registry.py        # 原生工具注册
 │
-├── langchain/                  # LangChain 版本（新增）
+├── integrations/langchain/     # LangChain 版本（可选规划）
 │   ├── lc_tools.py             # LangChain 工具定义
 │   ├── lc_agent.py             # LangChain Agent
 │   └── lc_interviewer.py       # 面试官（LangChain版）
 │
-└── langgraph/                  # LangGraph 版本（新增）
+└── integrations/langgraph/     # LangGraph 版本（可选规划）
     ├── lg_state.py             # 状态定义
     ├── lg_nodes.py             # 节点函数
     ├── lg_graph.py             # 状态图构建
@@ -326,21 +327,21 @@ import asyncio
 
 async def test_native():
     """测试原生实现"""
-    from .harness.agents.agent_loop import AgentLoop
+    from agents.core.agent_loop import AgentLoop
     agent = AgentLoop()
     result = await agent.run("开始面试")
     return result
 
 async def test_langchain():
     """测试 LangChain 实现"""
-    from .harness.agents.langchain.lc_agent import LangChainAgent
+    from agents.integrations.langchain.lc_agent import LangChainAgent
     agent = LangChainAgent()
     result = await agent.run("开始面试")
     return result
 
 async def test_langgraph():
     """测试 LangGraph 实现"""
-    from .harness.agents.langgraph.lg_graph import LangGraphAgent
+    from agents.integrations.langgraph.lg_graph import LangGraphAgent
     agent = LangGraphAgent()
     result = await agent.run("开始面试")
     return result

@@ -66,10 +66,10 @@ pip install -r requirements.txt
 cp .harness/config/harness.yaml.example .harness/config/harness.yaml
 # 编辑 harness.yaml，填入你的 DeepSeek API Key
 
-# 4. 初始化数据库（MySQL）
-mysql -u root -p < .harness/db/schema_mysql.sql
-# 或使用 SQLite（零配置）
+# 4. 初始化数据库（默认 SQLite，零配置）
 python scripts/init_database.py
+# 如需 MySQL，再执行：
+# mysql -u root -p < .harness/db/schema_mysql.sql
 
 # 5. 导入题库（1346 道 Java 面试题）
 python scripts/import_questions.py --knowledge-base java_interview
@@ -165,11 +165,10 @@ obsidian-interview-harness/
 │   ├── import_questions.py          # 题库导入
 │   └── demo_full_flow.py            # 完整流程演示
 │
-└── docs/                            # 完整文档
-    ├── CLAUDE.md                    # 项目完整上下文
-    ├── AGENTS.md                    # Agent 架构设计
-    ├── PLAN.md                      # 实施计划
-    └── MYSQL_SETUP.md               # 数据库配置
+├── CLAUDE.md                        # 项目完整上下文
+├── AGENTS.md                        # Agent 架构设计
+├── PLAN.md                          # 实施计划
+└── MYSQL_SETUP.md                   # 数据库配置
 ```
 
 ---

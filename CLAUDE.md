@@ -171,12 +171,16 @@ AI-Knowledge/
 │   │
 │   └── definitions/                 # Agent 角色定义文档
 │       ├── interviewer.md
+│       ├── scheduler.md
+│       ├── linker.md
+│       ├── analyzer.md
+│       ├── buddy.md
 │       ├── supervisor.md
 │       ├── orchestrator.md
 │       ├── memory-reviewer.md
 │       └── material-curator.md
 │
-├── .harness/                        # 配置、记忆、数据库和旧入口兼容层
+├── .harness/                        # 配置、记忆和数据库
 │   ├── config/
 │   │   ├── harness.yaml             # 主配置
 │   │   ├── agents_config.yaml       # Agent 配置
@@ -190,17 +194,9 @@ AI-Knowledge/
 │   ├── db/                          # 数据库 Schema / SQLite 文件
 │   │   ├── schema_mysql.sql
 │   │   └── schema.sql
-│   │
-│   ├── agents/                      # 兼容入口，转发到 agents.core/roles
-│   │   └── __init__.py
-│   ├── tools/                       # 兼容入口，转发到 agents.tools
-│   │   └── __init__.py
-│   └── prompts/                     # 已迁移到 agents/definitions/
-│       └── README.md
 │
 ├── scripts/                         # 工具脚本
 │   ├── init_database_mysql.py       # 数据库初始化
-│   ├── migrate_structure.py         # 目录迁移脚本
 │   ├── cli_interview.py             # 命令行界面
 │   ├── demo_full_flow.py            # 完整流程演示
 │   └── test_agent_loop.py           # 核心引擎测试
@@ -415,9 +411,6 @@ from agents.roles.interviewer_agent import InterviewerAgent
 from agents.core.agent_loop import AgentLoop
 from agents.core.tool_registry import ToolRegistry
 
-# 旧代码兼容（不推荐，请迁移到上面的导入方式）
-# from .harness.tools import memory_tools, question_tools
-# from .harness.agents import InterviewerAgent
 ```
 
 ### 命名约定
@@ -579,7 +572,7 @@ sudo systemctl start mysql  # Linux
 ```bash
 # 确保在项目根目录运行
 cd D:\ajie\study\AI-Knowledge
-python .harness/tools/question_tools.py
+python -m agents.tools.question_tools
 ```
 
 ### 中文编码问题

@@ -9,7 +9,7 @@ role: main-agent
 
 ## 固定流程
 
-1. 读取项目上下文：`AGENTS.md`、`.harness/config.yaml`、`.harness/memory/MEMORY.md`、`.harness/memory/USER.md`。
+1. 读取项目上下文：`AGENTS.md`、`.harness/config/harness.yaml`、`.harness/memory/MEMORY.md`、`.harness/memory/USER.md`。
 2. 根据用户目标选择练习模式：上传资料、专项背题、模拟面试、薄弱点复盘。
 3. 通过 Task Tool 委派子 Agent：
    - `material_curator`：把上传材料拆成面试卡片。

@@ -1,0 +1,42 @@
+# Agent 角色配置
+#
+# 主程序目前从 .harness/config/harness.yaml 读取配置。本文件作为角色配置清单，
+# 方便后续把各 Agent 的参数独立拆出来。
+agents:
+  interviewer:
+    enabled: true
+    priority: 1
+    model: null
+    temperature: 0.7
+    max_tokens: 2000
+    prompt_template: "agents/definitions/interviewer.md"
+
+  scheduler:
+    enabled: true
+    priority: 2
+    algorithm: "sm2"
+    initial_interval: 1
+    prompt_template: "agents/definitions/scheduler.md"
+
+  linker:
+    enabled: true
+    priority: 3
+    similarity_threshold: 0.7
+    top_k: 5
+    prompt_template: "agents/definitions/linker.md"
+
+  analyzer:
+    enabled: true
+    priority: 3
+    prompt_template: "agents/definitions/analyzer.md"
+
+  supervisor:
+    enabled: true
+    priority: 4
+    prompt_template: "agents/definitions/supervisor.md"
+
+  buddy:
+    enabled: true
+    priority: 1
+    temperature: 0.9
+    prompt_template: "agents/definitions/buddy.md"

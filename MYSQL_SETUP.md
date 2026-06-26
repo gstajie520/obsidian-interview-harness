@@ -255,7 +255,7 @@ mysql -u ai_interview_user -p ai_interview < backup.sql
 运行测试脚本验证配置是否正确：
 
 ```bash
-python .harness/tools/memory_tools.py
+python -m agents.tools.memory_tools
 ```
 
 **预期输出**:

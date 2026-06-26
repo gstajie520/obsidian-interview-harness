@@ -86,7 +86,7 @@ git push origin master
 
 ```bash
 # Phase 0.5 第一个功能
-git add .harness/agents/tool_registry.py
+git add agents/core/tool_registry.py
 git commit -m "feat(tool-registry): 实现工具注册系统
 
 - 支持工具注册和 schema 生成
@@ -94,7 +94,7 @@ git commit -m "feat(tool-registry): 实现工具注册系统
 - 添加单元测试"
 
 # Phase 0.5 第二个功能
-git add .harness/agents/agent_loop.py
+git add agents/core/agent_loop.py
 git commit -m "feat(agent-loop): 实现 TAOR 循环
 
 - Think → Act → Observe → Reflect

@@ -1,4 +1,4 @@
-# Agent Harness 主配置文件（示例）
+# Agent Harness 主配置模板
 version: "1.0.0"
 system_name: "通用面试陪练系统"
 
@@ -7,7 +7,7 @@ llm:
   provider: "deepseek"
   base_url: "https://api.deepseek.com"
   base_url_env: "DEEPSEEK_BASE_URL"
-  api_key: "your-api-key-here"  # ⚠️ 请替换为你的 API Key
+  api_key: null
   api_key_env: "DEEPSEEK_API_KEY"
   model: "deepseek-chat"
   model_env: "DEEPSEEK_MODEL"
@@ -32,14 +32,12 @@ knowledge_base:
 # 数据库配置
 database:
   type: "sqlite"  # 默认使用 SQLite（零配置），改为 "mysql" 可切换到 MySQL
-  # SQLite 配置（无需手动配置，自动使用 .harness/db/learning.db）
-
   # MySQL 配置（type 改为 mysql 时生效）
   host: "localhost"
   port: 3306
   database: "ai_interview"
   user: "root"
-  password: "your-mysql-password"  # 使用 MySQL 时需修改此密码
+  password: "your-mysql-password"
   charset: "utf8mb4"
   pool_size: 10
   pool_recycle: 3600
@@ -62,35 +60,30 @@ memory:
 agents:
   interviewer:
     enabled: true
-    prompt_template: ".harness/prompts/interviewer.md"
-
+    prompt_template: "agents/definitions/interviewer.md"
   supervisor:
     enabled: true
-    prompt_template: ".harness/prompts/supervisor.md"
-
+    prompt_template: "agents/definitions/supervisor.md"
   scheduler:
     enabled: true
-    prompt_template: ".harness/prompts/scheduler.md"
-    algorithm: "sm2"  # SuperMemo SM-2
-
+    prompt_template: "agents/definitions/scheduler.md"
+    algorithm: "sm2"
   linker:
     enabled: true
-    prompt_template: ".harness/prompts/linker.md"
+    prompt_template: "agents/definitions/linker.md"
     similarity_threshold: 0.7
-
   analyzer:
     enabled: true
-    prompt_template: ".harness/prompts/analyzer.md"
-
+    prompt_template: "agents/definitions/analyzer.md"
   buddy:
     enabled: true
-    prompt_template: ".harness/prompts/buddy.md"
+    prompt_template: "agents/definitions/buddy.md"
 
 # 复习调度配置
 scheduler:
   algorithm: "sm2"
-  initial_interval: 1  # 第一次复习：1天后
-  second_interval: 6   # 第二次复习：6天后
+  initial_interval: 1
+  second_interval: 6
   easiness_default: 2.5
   min_easiness: 1.3
   max_easiness: 3.0

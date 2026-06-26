@@ -11,7 +11,7 @@ role: background-agent
 
 - 热记忆：`.harness/memory/MEMORY.md`，只保留稳定事实、薄弱模块、复习策略。
 - 用户画像：`.harness/memory/USER.md`，只记录长期偏好和目标。
-- 冷召回：`.harness/db/interview_harness.db`，保留完整会话。
+- 冷召回：`.harness/db/learning.db`，保留完整会话和学习记录。
 - Obsidian 记录：`学习记录/面试练习-*.md`，便于人工回看。
 
 ## 写入规则
