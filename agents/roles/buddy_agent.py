@@ -17,6 +17,7 @@ class BuddyAgent(Agent):
     """陪练伙伴：负责提示、解释和学习陪伴。"""
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # Buddy 以后会偏交互体验；目前先保持和其他 Agent 一致的入口。
         super().__init__("buddy", config)
 
     def process(self, input_data: Any) -> Any:

@@ -17,6 +17,7 @@ class SupervisorAgent(Agent):
     """监督助手：负责学习报告和阶段性目标管理。"""
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # 先复用基类的配置和 LLM 能力，报告生成逻辑后续单独扩展。
         super().__init__("supervisor", config)
 
     def process(self, input_data: Any) -> Any:

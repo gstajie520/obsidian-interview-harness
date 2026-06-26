@@ -25,6 +25,7 @@ except ImportError:  # pragma: no cover - 只在缺少 PyYAML 的环境触发。
 ROOT_DIR = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT_DIR / ".harness" / "config" / "harness.yaml"
 
+# 默认配置集中放在常量里。这样配置文件缺字段时，代码还能用稳定默认值。
 DEFAULT_LLM_CONFIG: Dict[str, Any] = {
     "provider": "deepseek",
     "model": "deepseek-chat",
@@ -60,7 +61,11 @@ class _MissingLLMClient:
 
 @dataclass
 class AgentResponse:
-    """Agent 返回值的简单包装。"""
+    """Agent 返回值的简单包装。
+
+    `field(default_factory=dict)` 的意思是：每次创建对象都生成一个新的 dict。
+    这能避免 Python 初学者常踩的“可变默认参数共用同一个对象”问题。
+    """
 
     content: str
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -81,6 +86,8 @@ class Agent:
         agent_name: str,
         config: Optional[Dict[str, Any]] = None,
     ) -> None:
+        # 子类会传入自己的名字，例如 interviewer。这个名字会影响配置读取
+        # 和 prompt 文件定位。
         self.agent_name = agent_name
         self.config = self._merge_config(config or self.load_config())
         self.system_prompt = self.load_system_prompt()
@@ -95,6 +102,8 @@ class Agent:
             return dict(DEFAULT_CONFIG)
 
         try:
+            # `with open(...)` 是上下文管理器写法。离开代码块时文件会自动关闭，
+            # 类似 Java 的 try-with-resources。
             with open(CONFIG_PATH, "r", encoding="utf-8") as file:
                 loaded = yaml.safe_load(file) or {}
         except Exception:
@@ -154,6 +163,7 @@ class Agent:
         兼容旧代码使用。
         """
         self.add_message("user", user_message)
+        # OpenAI 兼容接口要求 messages 是一组 dict，每条消息都有 role/content。
         messages = [
             {"role": "system", "content": self.system_prompt},
             *self.conversation_history,
@@ -214,6 +224,8 @@ class Agent:
         """把配置文件与默认配置合并，避免缺字段时报错。"""
         merged = dict(DEFAULT_CONFIG)
         merged.update(config)
+        # 先用默认 LLM 配置兜底，再用 YAML 覆盖。这样就算 YAML 只写 model，
+        # api_key_env、base_url 等字段仍然存在。
         merged["llm"] = {
             **DEFAULT_LLM_CONFIG,
             **(config.get("llm", {}) if isinstance(config, dict) else {}),

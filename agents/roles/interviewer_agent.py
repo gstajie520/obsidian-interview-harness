@@ -14,6 +14,8 @@ import asyncio
 import datetime
 from typing import Any, Optional
 
+# 这里都是项目内部模块导入。Python 的包导入和 Java 的 import 类似，
+# 但文件夹必须能被识别为 package，通常依靠 __init__.py。
 from agents.core.agent_loop import AgentLoop
 from agents.core.base_agent import Agent
 from agents.core.context_manager import ContextManager
@@ -31,6 +33,8 @@ class InterviewerAgent(Agent):
     """
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # super() 调用父类 Agent 的构造方法，类似 Java 里的 super(...)。
+        # "interviewer" 会用于读取 interviewer 的配置和角色定义文档。
         super().__init__("interviewer", config)
 
         # 初始化工具注册表
@@ -40,6 +44,8 @@ class InterviewerAgent(Agent):
         # 初始化上下文管理器
         llm_config = self.config.get("llm", {})
         context_config = self.config.get("context", {})
+        # dict.get("key", default) 是 Python 字典常用写法：
+        # key 存在就取值，不存在就返回默认值，避免 KeyError。
         context_model = context_config.get("model") or llm_config.get(
             "model",
             "deepseek-chat",
@@ -66,6 +72,8 @@ class InterviewerAgent(Agent):
         )
 
         # 当前会话状态
+        # Python 可以先赋值 None，后面再放真正对象；Optional 类型提示就是
+        # 在告诉读者“这里可能是 None”。
         self.current_question = None
         self.session_id = None
 
@@ -83,7 +91,11 @@ class InterviewerAgent(Agent):
             description="获取用户的薄弱模块列表，返回掌握率最低的模块",
         )
         def get_weak_modules(limit: int = 5) -> dict[str, Any]:
-            """获取薄弱模块"""
+            """获取薄弱模块。
+
+            这是一个“内部函数”：它定义在 _register_tools 方法里面，只给
+            当前 Agent 注册工具用。内部函数可以访问外层的 self。
+            """
             try:
                 modules = memory_tools.get_weak_modules(limit)
                 if not modules:
@@ -120,6 +132,7 @@ class InterviewerAgent(Agent):
                 self.current_question = q
 
                 # 返回题目（不包含完整答案）
+                # 三元表达式写法：A if 条件 else B，类似 Java 的 条件 ? A : B。
                 preview = (
                     q.content[:200] + "..."
                     if len(q.content) > 200
@@ -177,6 +190,8 @@ class InterviewerAgent(Agent):
             """
             try:
                 # 构建评分字典
+                # LLM 传来的参数可能是字符串，这里统一转成 float，避免数据库
+                # 后续计算时类型不一致。
                 scores = {
                     "accuracy": float(score_accuracy),
                     "completeness": float(score_completeness),
@@ -185,6 +200,8 @@ class InterviewerAgent(Agent):
                 }
 
                 # 解析薄弱点
+                # 列表推导式是 Python 常见简写：
+                # 下面等价于创建空列表，然后 for 循环 append。
                 weak_list = [
                     point.strip()
                     for point in weak_points.split(",")
@@ -236,6 +253,7 @@ class InterviewerAgent(Agent):
             面试官的回复
         """
         # 生成会话 ID
+        # strftime 用来把时间格式化成字符串，这里生成一个简单的会话编号。
         self.session_id = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         memory_tools.create_session(self.session_id, "interviewer")
 
@@ -266,15 +284,20 @@ class InterviewerAgent(Agent):
         self.session_id = None
 
     def process(self, input_data: Any) -> str:
-        """同步接口（兼容基类）"""
+        """同步接口（兼容基类）。
+
+        AgentLoop 是异步的，但基类约定 process 是同步方法。这里用
+        asyncio.run() 临时启动事件循环，方便旧代码直接调用。
+        """
         return asyncio.run(self.start_interview(input_data))
 
 
 if __name__ == "__main__":
-    # 测试
-    print("="*60)
+    # `if __name__ == "__main__"` 表示直接运行本文件时才执行下面的自检；
+    # 被其他模块 import 时不会执行，类似 Java 里的 main 方法入口。
+    print("=" * 60)
     print("面试官 Agent 测试")
-    print("="*60)
+    print("=" * 60)
 
     async def test() -> None:
         agent = InterviewerAgent()

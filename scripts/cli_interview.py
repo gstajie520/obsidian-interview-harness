@@ -20,13 +20,25 @@ import sys
 import asyncio
 from pathlib import Path
 
-# Windows 控制台编码修复
-if sys.platform == 'win32':
+# Windows 控制台编码修复。很多 Windows 终端默认编码不是 UTF-8，
+# 不处理时中文和图标可能显示乱码。
+if sys.platform == "win32":
     import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+    sys.stdout = io.TextIOWrapper(
+        sys.stdout.buffer,
+        encoding="utf-8",
+        errors="replace",
+    )
+    sys.stderr = io.TextIOWrapper(
+        sys.stderr.buffer,
+        encoding="utf-8",
+        errors="replace",
+    )
 
 # 添加项目根目录到 Python 路径，正式实现从根目录 `agents` 包导入。
+# 直接运行 scripts/cli_interview.py 时，Python 默认只认识 scripts 目录；
+# 加入 ROOT_DIR 后，下面才能 import agents。
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
@@ -34,8 +46,8 @@ from agents.roles.interviewer_agent import InterviewerAgent
 from agents.tools import memory_tools
 
 
-def print_banner():
-    """打印欢迎横幅"""
+def print_banner() -> None:
+    """打印欢迎横幅。"""
     print("=" * 70)
     print(" " * 15 + "🎓 AI 面试陪练系统 - Agent Harness 版")
     print("=" * 70)
@@ -62,8 +74,8 @@ def print_banner():
     print()
 
 
-def print_help():
-    """打印帮助信息"""
+def print_help() -> None:
+    """打印帮助信息。"""
     print("\n" + "=" * 70)
     print("【帮助信息】")
     print()
@@ -88,8 +100,8 @@ def print_help():
     print("=" * 70 + "\n")
 
 
-def print_stats(agent):
-    """打印学习统计"""
+def print_stats(agent: InterviewerAgent) -> None:
+    """打印学习统计。"""
     print("\n" + "=" * 70)
     print("【学习统计】")
     print()
@@ -120,7 +132,11 @@ def print_stats(agent):
 
 
 async def main():
-    """主程序"""
+    """主程序。
+
+    这是 async 函数，因为面试过程会调用 AgentLoop。真实接入 LLM 时，
+    网络请求属于 I/O 操作，用 async/await 更适合。
+    """
     print_banner()
 
     # 初始化面试官 Agent
@@ -149,7 +165,7 @@ async def main():
     print()
 
     try:
-        # 第一轮：自动开场
+        # 第一轮：自动开场。await 表示等待 Agent 完成一轮异步流程。
         print("面试官: ", end="", flush=True)
         response = await agent.start_interview()
         print(response)
@@ -157,7 +173,7 @@ async def main():
 
         # 持续对话
         while True:
-            # 获取用户输入
+            # input() 会阻塞等待用户输入；strip() 去掉首尾空格和换行。
             user_input = input("你: ").strip()
             print()
 
@@ -165,7 +181,7 @@ async def main():
                 continue
 
             # 处理特殊命令
-            if user_input.lower() in ['quit', 'q', 'exit']:
+            if user_input.lower() in ["quit", "q", "exit"]:
                 print("面试结束！感谢参与。")
                 print_stats(agent)
                 break
@@ -201,7 +217,8 @@ async def main():
         print("\n再见！👋")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # 直接运行本文件时启动命令行程序；被测试或其他模块 import 时不启动。
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

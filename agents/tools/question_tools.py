@@ -19,6 +19,8 @@ except ImportError:  # pragma: no cover - 只在缺少 PyYAML 时触发。
     yaml = None
 
 
+# Path 是 Python 推荐的路径处理方式，比手写字符串拼接更安全。
+# `parents[2]` 表示从当前文件向上找两级目录，也就是项目根目录。
 ROOT_DIR = Path(__file__).resolve().parents[2]
 CONFIG_PATH = ROOT_DIR / ".harness" / "config" / "harness.yaml"
 KB_CONFIG_PATH = ROOT_DIR / ".harness" / "config" / "knowledge_bases.yaml"
@@ -26,7 +28,11 @@ KB_CONFIG_PATH = ROOT_DIR / ".harness" / "config" / "knowledge_bases.yaml"
 
 @dataclass
 class Question:
-    """一道人为可读的面试题。"""
+    """一道人为可读的面试题。
+
+    Python 的 dataclass 很适合做“数据载体”。你可以把它类比成 Java 的
+    POJO / record：字段清晰，主要用来装数据。
+    """
 
     question_id: str
     file_path: str
@@ -62,6 +68,8 @@ def _load_yaml(path: Path) -> Dict[str, Any]:
 def _resolve_question_base() -> Path:
     """从配置解析题库根目录，失败时使用常见默认目录。"""
     main_cfg = _load_yaml(CONFIG_PATH)
+    # 这里的条件表达式读法是：如果 main_cfg 有值，就从配置取默认知识库；
+    # 否则使用 "java_interview"。
     default_kb = (
         main_cfg.get("knowledge_base", {}).get("default", "java_interview")
         if main_cfg
@@ -101,6 +109,8 @@ def set_knowledge_base(kb_key: str) -> bool:
         找到并切换成功返回 True，否则返回 False。
     """
     global QUESTION_BASE
+    # global 表示下面要修改模块级变量 QUESTION_BASE，而不是创建同名局部变量。
+    # 一般业务代码要少用 global，这里用于脚本运行时切换知识库，范围很小。
 
     kb_cfg = _load_yaml(KB_CONFIG_PATH)
     kb_item = kb_cfg.get("knowledge_bases", {}).get(kb_key, {})
@@ -122,6 +132,7 @@ def get_all_modules() -> List[str]:
         return []
 
     modules = []
+    # iterdir() 会遍历目录下的直接子文件/子目录，不会递归。
     for item in QUESTION_BASE.iterdir():
         if item.is_dir() and not item.name.startswith("."):
             modules.append(item.name)
@@ -147,6 +158,7 @@ def parse_question_file(file_path: str) -> Optional[Question]:
     if not file_path_obj.exists():
         return None
 
+    # errors="ignore" 表示遇到少量非法字符时跳过，避免整个导入流程中断。
     content = file_path_obj.read_text(encoding="utf-8", errors="ignore")
     metadata, body = _split_frontmatter(content)
 
@@ -189,6 +201,7 @@ def get_random_question(
         module: 指定模块；传 None 时从所有模块里抽题。
         exclude_ids: 需要排除的题目 ID 列表，避免短时间内重复抽到。
     """
+    # 用 set 做排除判断比 list 更快；题量大时差异会明显。
     exclude = set(exclude_ids or [])
     question_files = _collect_question_files(module)
     if not question_files:
@@ -255,7 +268,11 @@ def _collect_question_files(module: Optional[str]) -> List[str]:
 
 
 def _split_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
-    """拆分 Markdown frontmatter 和正文。"""
+    """拆分 Markdown frontmatter 和正文。
+
+    frontmatter 是 Markdown 文件开头 `---` 包住的 YAML 元数据。
+    返回值是 `(metadata, body)`，这是 Python 常见的多返回值写法。
+    """
     if not content.startswith("---"):
         return {}, content
 
@@ -281,6 +298,8 @@ def _split_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
 
 
 if __name__ == "__main__":
+    # 这个自检入口方便你单独运行本文件：
+    # python -m agents.tools.question_tools
     stats = get_question_stats()
     print("题库工具自检")
     print("=" * 40)

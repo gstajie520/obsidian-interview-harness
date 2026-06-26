@@ -25,7 +25,11 @@ DEFAULT_LLM_MODEL = "deepseek-chat"
 
 
 class AgentState(str, Enum):
-    """Agent Loop 当前所处的状态。"""
+    """Agent Loop 当前所处的状态。
+
+    继承 `str, Enum` 后，每个枚举值既是枚举，也能当字符串使用。
+    这比 Java enum 更灵活，序列化到日志或 JSON 时会方便一些。
+    """
 
     IDLE = "IDLE"
     THINKING = "THINKING"
@@ -46,6 +50,8 @@ class AgentLoop:
         if max_rounds <= 0:
             raise ValueError("max_rounds 必须大于 0")
 
+        # Python 的实例字段通常在 __init__ 里创建。这里和 Java 构造方法
+        # 初始化成员变量的作用一样。
         self.agent = agent
         self.tool_registry = tool_registry
         self.max_rounds = max_rounds
@@ -59,6 +65,9 @@ class AgentLoop:
 
         注意：一次 `run()` 里可能会调用多轮 LLM，因为 LLM 可能先调用工具，
         再根据工具结果继续思考。
+
+        `async def` 表示这是协程函数；调用它时需要 `await`，类似把耗时的
+        网络请求交给事件循环，不阻塞整个程序。
         """
         self.round = 0
         self.add_message("user", user_input)
@@ -74,6 +83,8 @@ class AgentLoop:
             tool_calls = self._get_tool_calls(message)
 
             if tool_calls:
+                # LLM 的工具调用不是“直接执行代码”，而是先产出一个结构化请求。
+                # 真正执行哪个 Python 函数，由 ToolRegistry 负责。
                 # Act：LLM 选择调用工具时，先把 assistant 的 tool_calls 记下来。
                 self.state = AgentState.EXECUTING
                 self.messages.append(self._assistant_tool_message(message))
@@ -130,6 +141,8 @@ class AgentLoop:
         config = getattr(self.agent, "config", {}) or {}
         llm_config = config.get("llm", {})
 
+        # payload 是发给 LLM 的请求体。Python dict 类似 Java 的 Map，
+        # 但写法更接近 JSON。
         payload: JsonDict = {
             "model": llm_config.get("model") or DEFAULT_LLM_MODEL,
             "messages": self._build_llm_messages(),
@@ -139,6 +152,7 @@ class AgentLoop:
 
         tool_schemas = self.tool_registry.get_tool_schemas()
         if tool_schemas:
+            # 有工具时才传 `tools` 字段；没有工具时保持请求体简单。
             payload["tools"] = tool_schemas
 
         response = create(**payload)
@@ -158,6 +172,7 @@ class AgentLoop:
         system_prompt = getattr(self.agent, "system_prompt", "")
         if not system_prompt:
             return list(self.messages)
+        # `*self.messages` 是列表解包，类似把已有列表里的元素逐个放进新列表。
         return [{"role": "system", "content": system_prompt}, *self.messages]
 
     @classmethod

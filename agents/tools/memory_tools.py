@@ -51,7 +51,11 @@ _DIALECT = get_db_type()
 
 
 def _ph(sql: str) -> str:
-    """把统一使用的 `?` 占位符转换为当前数据库方言。"""
+    """把统一使用的 `?` 占位符转换为当前数据库方言。
+
+    SQLite 使用 `?` 作为参数占位符，MySQL 驱动使用 `%s`。
+    业务 SQL 统一写 `?`，这里集中转换，避免到处写分支判断。
+    """
     if _DIALECT == "mysql":
         return sql.replace("?", "%s")
     return sql
@@ -62,6 +66,7 @@ if _DIALECT == "mysql":
     _INSERT_IGNORE = "INSERT IGNORE"
 
     def _days_overdue_expr(column: str) -> str:
+        # MySQL 有内置 DATEDIFF 函数，可以直接算两个日期差几天。
         return f"DATEDIFF({_TODAY}, {column})"
 
 else:
@@ -69,6 +74,7 @@ else:
     _INSERT_IGNORE = "INSERT OR IGNORE"
 
     def _days_overdue_expr(column: str) -> str:
+        # SQLite 没有 DATEDIFF，用 JULIANDAY 做日期差。
         return f"JULIANDAY({_TODAY}) - JULIANDAY({column})"
 
 
@@ -80,6 +86,8 @@ def get_connection() -> Any:
     if _DIALECT == "mysql":
         config = load_config()
         database = config.get("database", {})
+        # pymysql 只在真正使用 MySQL 时才导入。这样默认 SQLite 用户不需要
+        # 安装 MySQL 依赖也能运行。
         import pymysql
         import pymysql.cursors
 
@@ -95,6 +103,7 @@ def get_connection() -> Any:
 
     SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(SQLITE_PATH))
+    # row_factory 让查询结果能像 dict 一样按列名读取，后面转换更方便。
     conn.row_factory = sqlite3.Row
     _ensure_sqlite_schema(conn)
     return conn
@@ -166,6 +175,7 @@ def get_weak_modules(limit: int = 5) -> List[str]:
     )
     rows = cursor.fetchall()
     conn.close()
+    # 这里用列表推导式把多行查询结果转成模块名列表。
     return [_row_to_dict(row)["module"] for row in rows]
 
 
@@ -185,6 +195,8 @@ def add_learning_record(
     overall_score = _overall_score(scores)
 
     # 学习记录可能来自尚未导入元数据的题目，先确保元数据行存在。
+    # f-string 是 Python 字符串模板写法，类似 Java 里 String.format，
+    # 但更直观：f"hello {name}"。
     cursor.execute(
         _ph(
             f"{_INSERT_IGNORE} INTO question_metadata "
@@ -286,6 +298,7 @@ def calculate_next_review(question_id: str, performance_score: float) -> None:
         - (5 - performance_score)
         * (0.08 + (5 - performance_score) * 0.02)
     )
+    # SM-2 算法要求 easiness 保持在合理范围内，避免间隔过短或过长。
     new_easiness = max(1.3, min(3.0, new_easiness))
 
     if performance_score < 3:
@@ -441,6 +454,7 @@ def _row_to_dict(row: Any) -> Optional[Dict[str, Any]]:
         return None
     if isinstance(row, dict):
         return row
+    # sqlite3.Row 可以直接交给 dict() 转换成普通字典。
     return dict(row)
 
 

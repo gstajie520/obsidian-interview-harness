@@ -17,6 +17,7 @@ class AnalyzerAgent(Agent):
     """错题分析师：负责识别错误模式并给出补救方向。"""
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # 先接入通用 Agent 基类，后续再补错题分类和补救推荐工具。
         super().__init__("analyzer", config)
 
     def process(self, input_data: Any) -> Any:

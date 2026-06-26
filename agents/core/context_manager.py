@@ -49,6 +49,8 @@ class ContextManager:
         if retain_recent_rounds <= 0:
             raise ValueError("retain_recent_rounds 必须大于 0")
 
+        # 这些字段都是普通实例属性。Python 不需要提前声明成员变量类型，
+        # 但通过上面的函数签名已经给出了类型提示。
         self.max_tokens = max_tokens
         self.threshold = threshold
         self.model = model
@@ -59,6 +61,8 @@ class ContextManager:
     def count_tokens(self, messages: Iterable[Mapping[str, Any]]) -> int:
         """估算一组 chat messages 的 token 数量。"""
         total = 0
+        # Iterable 表示“能被 for 循环遍历的对象”，可以是 list、tuple，
+        # 也可以是生成器。这里不要求一定传 list。
         for message in messages:
             # ChatML 每条消息有少量结构开销，这里用 4 做近似值。
             total += 4
@@ -108,6 +112,9 @@ class ContextManager:
         if len(messages) <= retain_count:
             return list(messages)
 
+        # Python 切片语法：
+        # messages[:-retain_count] 取前面的旧消息；
+        # messages[-retain_count:] 取最后 retain_count 条消息。
         old_messages = messages[:-retain_count]
         recent_messages = messages[-retain_count:]
         summary = await self._summarize(old_messages, llm_client)
@@ -134,6 +141,8 @@ class ContextManager:
 
         try:
             if hasattr(llm_client, "summarize"):
+                # 测试或自定义客户端可以提供 summarize 方法，避免强依赖
+                # OpenAI SDK 的完整响应格式。
                 result = llm_client.summarize(prompt)
                 if inspect.isawaitable(result):
                     result = await result
@@ -149,6 +158,7 @@ class ContextManager:
                 response = await response
             return self._extract_message_content(response)
         except Exception:
+            # 摘要失败时不能让整个面试中断，所以退回到本地摘要。
             return self._local_summary(messages)
 
     @staticmethod
@@ -181,6 +191,7 @@ class ContextManager:
             return ""
         if isinstance(value, str):
             return value
+        # 非字符串内容可能是 dict/list，转 JSON 能保留结构信息。
         return json.dumps(value, ensure_ascii=False)
 
     @staticmethod

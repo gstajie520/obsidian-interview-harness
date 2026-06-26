@@ -17,6 +17,8 @@ class SchedulerAgent(Agent):
     """复习调度器：负责复习时间和优先级规划。"""
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # 目前先继承 Agent 的通用能力：配置、Prompt、LLM 客户端。
+        # 后续真正实现调度算法时，只需要在这个类里继续加方法。
         super().__init__("scheduler", config)
 
     def process(self, input_data: Any) -> Any:

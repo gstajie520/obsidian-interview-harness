@@ -17,11 +17,17 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
+# demo 脚本和正式命令行入口一样，需要先把项目根目录放进导入路径。
 from agents.roles.interviewer_agent import InterviewerAgent
 from agents.tools import memory_tools
 
 
-async def demo():
+async def demo() -> None:
+    """模拟一次完整流程。
+
+    这个函数是 async，因为 InterviewerAgent 内部会调用 AgentLoop，而
+    AgentLoop 可能发起网络请求或等待异步工具。
+    """
     print("🎓 Agent Harness 完整流程演示")
     print("=" * 70)
 
@@ -72,5 +78,6 @@ finally 中的代码不一定会执行。
     print("  python scripts/cli_interview.py")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    # asyncio.run 会创建事件循环并执行 demo 协程。
     asyncio.run(demo())

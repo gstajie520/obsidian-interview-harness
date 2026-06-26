@@ -17,11 +17,16 @@ from typing import Optional
 ROOT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT_DIR))
 
+# 因为脚本在 scripts/ 目录下直接运行时，Python 默认只把 scripts/
+# 加入搜索路径。上面手动加入项目根目录后，才能导入 agents 包。
 from agents.tools import memory_tools, question_tools  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
-    """解析命令行参数。"""
+    """解析命令行参数。
+
+    argparse 是 Python 标准库，作用类似 Java 里常见的 CLI 参数解析库。
+    """
     parser = argparse.ArgumentParser(description="导入题库元数据")
     parser.add_argument(
         "--knowledge-base",
@@ -38,6 +43,7 @@ def parse_args() -> argparse.Namespace:
 
 def import_questions(module: Optional[str] = None) -> int:
     """导入题目元数据，返回成功导入的题目数量。"""
+    # 如果传了 module，只导入这一个模块；否则导入全部模块。
     modules = [module] if module else question_tools.get_all_modules()
     imported_count = 0
 
@@ -73,4 +79,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    # 直接运行脚本时进入 main；被测试 import 时不会自动执行。
     main()

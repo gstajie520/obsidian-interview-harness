@@ -17,6 +17,7 @@ class LinkerAgent(Agent):
     """知识关联器：负责发现题目之间的关系。"""
 
     def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+        # 先保留标准 Agent 骨架，方便未来接入向量检索或知识图谱工具。
         super().__init__("linker", config)
 
     def process(self, input_data: Any) -> Any:

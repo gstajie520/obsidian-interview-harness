@@ -20,6 +20,8 @@ from typing import Any, Callable, Dict, Mapping, Optional, Union
 from typing import get_args, get_origin
 
 
+# 这里用别名减少重复书写。可以把 JsonDict 理解成 Java 里的
+# `Map<String, Object>`，只是 Python 写法更轻量。
 JsonDict = Dict[str, Any]
 ToolFunction = Callable[..., Any]
 
@@ -38,6 +40,10 @@ class ToolCallRequest:
 
     OpenAI SDK 可能返回对象，也可能在测试里使用 dict。为了后续执行简单，
     我们先把它们统一成这个结构。
+
+    `@dataclass` 类似 Java 的 Lombok `@Data` / record：Python 会自动生成
+    `__init__`、`__repr__` 等方法。`frozen=True` 表示创建后不建议再修改，
+    类似 Java 里不可变对象的思路。
     """
 
     name: str
@@ -70,11 +76,17 @@ class ToolRegistry:
     """工具注册与执行入口。"""
 
     def __init__(self) -> None:
+        # 前面的下划线表示“内部字段”。Python 不强制 private，但约定外部
+        # 不要直接改它；需要读取时通过下面的 `tools` property。
         self._tools: Dict[str, RegisteredTool] = {}
 
     @property
     def tools(self) -> Dict[str, RegisteredTool]:
-        """返回已注册工具的副本，避免外部直接改内部状态。"""
+        """返回已注册工具的副本，避免外部直接改内部状态。
+
+        `@property` 让调用方可以写 `registry.tools`，效果像访问字段；
+        但内部仍然可以执行函数逻辑。这和 Java 的 getter 思路接近。
+        """
         return dict(self._tools)
 
     def register(
@@ -93,6 +105,9 @@ class ToolRegistry:
         如果没有手写 `parameters`，会根据函数签名自动生成一个基础 Schema。
         """
         if func is None:
+            # 当 register 被当作装饰器使用时，Python 会先执行这里，返回一个
+            # decorator 函数；随后再把真正被装饰的函数传给 decorator。
+            # Java 里没有完全一样的语法，可以把它理解成“注册回调函数”。
 
             def decorator(target: ToolFunction) -> ToolFunction:
                 self.register(
@@ -108,6 +123,7 @@ class ToolRegistry:
         tool_name = name or func.__name__
         self._validate_tool_name(tool_name)
 
+        # Python 的 `or` 常用来做默认值选择：左边有值就用左边，否则用右边。
         tool_description = (
             description
             or inspect.getdoc(func)
@@ -155,10 +171,16 @@ class ToolRegistry:
             return {"error": f"工具不存在: {name}"}
 
         tool = self._tools[name]
+        # Mapping 是“只要求像 dict 一样能读”的类型。这里转成真正的 dict，
+        # 后面才能用 `**kwargs` 展开成函数参数。
         kwargs = dict(arguments or {})
         try:
+            # `func(**kwargs)` 表示把字典展开为关键字参数：
+            # {"limit": 5} 会变成 func(limit=5)。
             result = tool.function(**kwargs)
             if inspect.isawaitable(result):
+                # 工具可以是普通函数，也可以是 async 函数；如果返回值可 await，
+                # 就等待它完成。这样注册方不用关心工具是同步还是异步。
                 result = await result
             return result
         except Exception as exc:
@@ -166,6 +188,8 @@ class ToolRegistry:
 
     def parse_tool_call(self, tool_call: Any) -> ToolCallRequest:
         """把 OpenAI SDK 对象或 dict 统一解析成 ToolCallRequest。"""
+        # OpenAI SDK 返回的是对象，测试代码经常用 dict。统一读字段可以减少
+        # 后续分支判断。
         call_id = self._read_value(tool_call, "id")
         function = self._read_value(tool_call, "function")
         if function is None:
@@ -195,7 +219,10 @@ class ToolRegistry:
         key: str,
         default: Any = None,
     ) -> Any:
-        """同时支持从 dict 和对象属性读取字段。"""
+        """同时支持从 dict 和对象属性读取字段。
+
+        `@staticmethod` 表示这个方法不需要访问 `self`，只是放在类里做归类。
+        """
         if isinstance(source, Mapping):
             return source.get(key, default)
         return getattr(source, key, default)
@@ -238,7 +265,11 @@ class ToolRegistry:
 
     @classmethod
     def _schema_from_signature(cls, func: ToolFunction) -> JsonDict:
-        """根据函数参数自动生成最小可用的 JSON Schema。"""
+        """根据函数参数自动生成最小可用的 JSON Schema。
+
+        `inspect.signature()` 是 Python 的反射能力，类似 Java 反射读取方法
+        参数。这里用它把函数签名转换成 LLM 能理解的参数 Schema。
+        """
         signature = inspect.signature(func)
         properties: JsonDict = {}
         required: list[str] = []
