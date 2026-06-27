@@ -18,6 +18,20 @@
 
 当前代码已经整理为标准 Python Agents 项目结构：正式代码放在 `agents/`，配置、数据库和记忆文件放在 `.harness/`。
 
+## 如果你是 Python 初学者
+
+建议先按这个顺序读，不要直接从所有代码开始：
+
+```text
+1. SYSTEM_LEARNING_GUIDE.md       系统学习总览，把业务、Python 和 AI 概念串起来
+2. LEARNING_MAP.md                快速恢复记忆的流程图和回忆卡片
+3. QUICKSTART_FOR_BEGINNERS.md    从零运行项目的操作说明
+4. scripts/cli_interview.py       用户输入进入系统的地方
+5. agents/roles/interviewer_agent.py  面试官 Agent 如何组装工具和循环
+```
+
+本项目后续代码会尽量使用“学习型注释”：解释业务流程、关键 Python 语法，并用 Java 类比帮助理解。
+
 ## 当前状态
 
 | 模块 | 状态 | 说明 |
@@ -218,6 +232,7 @@ llm:
 
 ## 文档入口
 
+- [SYSTEM_LEARNING_GUIDE.md](SYSTEM_LEARNING_GUIDE.md)：系统学习总览，适合从 Java 转 Python/AI 的学习路线。
 - [AGENTS.md](AGENTS.md)：6 个 Agent 的职责和协作方式。
 - [CLAUDE.md](CLAUDE.md)：项目上下文、开发约束和运行说明。
 - [PLAN.md](PLAN.md)：阶段计划和待办路线。

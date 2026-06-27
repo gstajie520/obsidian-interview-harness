@@ -2,6 +2,8 @@
 
 这份地图用于快速恢复记忆。先看主链路，再看分层职责，最后用回忆卡片自测。
 
+如果你是第一次系统学习，建议先读 `SYSTEM_LEARNING_GUIDE.md`；如果只是忘了流程，用这份学习地图快速恢复记忆。
+
 ## 一句话总览
 
 用户在命令行输入内容，`cli_interview.py` 把输入交给 `InterviewerAgent`，`InterviewerAgent` 再交给 `AgentLoop.run()`。`AgentLoop` 调用 LLM，LLM 如果要工具，就让 `ToolRegistry` 执行 `question_tools` 或 `memory_tools`，工具结果回到 LLM，最终生成面试官回复。
@@ -204,4 +206,3 @@ DB 和知识库管数据
 问题：学习记录保存在哪里？
 
 答案：SQLite 数据库 `.harness/db/learning.db`，主要表是 `learning_records` 和 `question_metadata`。
-
