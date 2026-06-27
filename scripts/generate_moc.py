@@ -108,10 +108,20 @@ def generate_main_moc(modules: dict, output_path: Path):
     生成主索引 Java面试.md
     """
     content = [
+        "---",
+        "type: moc",
+        "tags: [java, interview, index]",
+        "---",
+        "",
         "# Java 面试知识库",
         "",
         "> 本文件是自动生成的 MOC (Map of Content) 主索引",
         "> 通过 Obsidian 图谱视图可以看到完整的知识结构",
+        "",
+        "## 🚀 快速入口",
+        "",
+        "- [[📊学习仪表盘]] — 用 Dataview 自动统计掌握度、待复习题目",
+        "- [[🧭插件使用速查]] — Spaced Repetition / Breadcrumbs / Dataview / Excalidraw 操作手册",
         "",
         "## 📚 知识模块",
         "",
