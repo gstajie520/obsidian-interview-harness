@@ -388,6 +388,41 @@ def create_session(session_id: str, primary_agent: str) -> str:
     return session_id
 
 
+def get_session(session_id: str) -> Optional[Dict[str, Any]]:
+    """读取单个学习会话。
+
+    这个函数给 FastAPI 层使用。API 收到 `/api/session/{id}` 请求后，
+    不应该自己拼 SQL，而是通过记忆工具层读取数据库，保持分层清晰。
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        _ph("SELECT * FROM sessions WHERE session_id = ?"),
+        (session_id,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+    return _row_to_dict(row)
+
+
+def delete_session(session_id: str) -> bool:
+    """删除学习会话，返回是否真的删除了数据。
+
+    rowcount 的含义和 `init_question_metadata()` 中一样：可以类比
+    Java JDBC 的 executeUpdate() 返回值。删除到 1 行表示会话存在。
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        _ph("DELETE FROM sessions WHERE session_id = ?"),
+        (session_id,),
+    )
+    deleted = int(getattr(cursor, "rowcount", 0) or 0) > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def update_session_stats(session_id: str, stats: Dict[str, Any]) -> None:
     """更新会话结束后的统计数据。"""
     conn = get_connection()

@@ -1160,8 +1160,8 @@ python scripts/cli_interface.py
 ### Milestone 2: API 服务就绪
 
 **完成标志**:
-- [ ] FastAPI 服务器能启动
-- [ ] 所有 REST API 正常工作
+- [x] FastAPI 服务器能启动
+- [x] 基础 REST API 正常工作（会话、统计、题目查询）
 - [ ] WebSocket 连接稳定
 
 **验证方式**:

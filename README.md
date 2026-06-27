@@ -42,8 +42,9 @@
 | 记忆工具 | 已实现 | 保存学习记录、题目元数据和复习信息 |
 | SQLite 数据库 | 已实现 | 默认零配置使用 |
 | MySQL | 可选 | 有配置和 schema，非默认启动方式 |
+| FastAPI 基础服务 | 已实现 | 会话、统计和题目查询接口可用 |
 | 其他 5 个 Agent | 规划中 | 当前主要是角色骨架和定义文档 |
-| Web UI | 规划中 | 依赖中已有 FastAPI，但当前主要入口是命令行 |
+| Web UI | 规划中 | 当前主要入口仍是命令行，API 已开始提供 |
 
 ## 快速开始
 
@@ -115,6 +116,27 @@ stats  查看学习统计
 quit   退出面试
 ```
 
+### 6. 启动 API 服务
+
+```bash
+python scripts/harness_server.py
+```
+
+服务默认监听：
+
+```text
+http://127.0.0.1:8000
+```
+
+常用接口：
+
+```text
+GET  /api/health
+GET  /api/stats/overview
+GET  /api/questions/random
+POST /api/session/create
+```
+
 ## 项目结构
 
 ```text
@@ -144,6 +166,7 @@ AI-Knowledge/
 │   ├── init_database.py            # 初始化 SQLite
 │   ├── import_questions.py         # 导入题库元数据
 │   ├── cli_interview.py            # 命令行面试入口
+│   ├── harness_server.py           # FastAPI 服务入口
 │   └── demo_full_flow.py           # 完整流程演示
 ├── tests/                          # 自动化测试
 ├── 知识库/                         # Markdown 面试题库
@@ -198,6 +221,12 @@ python -m pytest tests/test_core_engine.py
 
 ```bash
 python scripts/test_agent_loop.py
+```
+
+启动 FastAPI 服务：
+
+```bash
+python scripts/harness_server.py
 ```
 
 检查 Python 文件是否能编译：
