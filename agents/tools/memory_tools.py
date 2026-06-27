@@ -158,7 +158,7 @@ def update_mastery_level(question_id: str, mastery_level: str) -> None:
 
 
 def get_weak_modules(limit: int = 5) -> List[str]:
-    """返回平均得分最低的模块，用于优先复习。"""
+    """返回已作答题目中平均得分最低的模块，用于优先复习。"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -166,6 +166,7 @@ def get_weak_modules(limit: int = 5) -> List[str]:
             """
             SELECT module, AVG(avg_score) AS avg_score, SUM(total_attempts) AS attempts
             FROM question_metadata
+            WHERE total_attempts > 0
             GROUP BY module
             ORDER BY avg_score ASC, attempts DESC
             LIMIT ?
