@@ -135,7 +135,10 @@ GET  /api/health
 GET  /api/stats/overview
 GET  /api/questions/random
 POST /api/session/create
+WS   /ws/interview
 ```
+
+`/ws/interview` 当前提供稳定的 WebSocket 消息协议骨架，方便前端先联调实时消息；真实 LLM 流式评分会在后续阶段接入。
 
 ## 项目结构
 

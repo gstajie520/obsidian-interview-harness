@@ -17,11 +17,14 @@ import datetime
 import uuid
 from typing import Any, Optional
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from agents.tools import memory_tools, question_tools
+
+
+SUPPORTED_WEBSOCKET_MESSAGE_TYPES = {"submit_answer"}
 
 
 class CreateSessionRequest(BaseModel):
@@ -140,7 +143,68 @@ def create_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="question not found")
         return question.to_dict()
 
+    @app.websocket("/ws/interview")
+    async def interview_websocket(websocket: WebSocket) -> None:
+        """面试 WebSocket 通道。
+
+        WebSocket 可以类比一个“不断开的 HTTP 连接”。普通 REST 是一次请求
+        一次响应；WebSocket 建立连接后，前后端可以多次互发 JSON 消息。
+
+        当前版本先提供稳定协议骨架：收到答案后返回两段事件，方便前端先
+        完成实时消息联调。真实 LLM 流式评分会在后续版本接入。
+        """
+        await websocket.accept()
+        await websocket.send_json({"type": "connection_open"})
+
+        try:
+            while True:
+                message = await websocket.receive_json()
+                message_type = str(message.get("type") or "")
+
+                if message_type not in SUPPORTED_WEBSOCKET_MESSAGE_TYPES:
+                    await websocket.send_json(
+                        {
+                            "type": "error",
+                            "message": f"不支持的消息类型: {message_type}",
+                        }
+                    )
+                    continue
+
+                await _handle_submit_answer_message(websocket, message)
+        except WebSocketDisconnect:
+            return
+
     return app
+
+
+async def _handle_submit_answer_message(
+    websocket: WebSocket,
+    message: dict[str, Any],
+) -> None:
+    """处理用户提交答案的 WebSocket 消息。
+
+    这个函数先不直接调用 LLM。原因是 WebSocket 协议、前端实时显示、LLM
+    流式输出是三个不同问题；先把协议稳定下来，后续再把 Agent 接进来。
+    """
+    question_id = str(message.get("question_id") or "")
+    answer = str(message.get("answer") or "")
+
+    await websocket.send_json(
+        {
+            "type": "evaluation_chunk",
+            "content": "已收到答案，正在进入评估流程...",
+        }
+    )
+    await websocket.send_json(
+        {
+            "type": "evaluation_complete",
+            "status": "received",
+            "question_id": question_id,
+            "answer_length": len(answer),
+            "scores": None,
+            "message": "真实 LLM 评分将在后续版本接入。",
+        }
+    )
 
 
 app = create_app()

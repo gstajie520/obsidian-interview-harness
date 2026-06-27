@@ -132,3 +132,44 @@ def test_question_endpoints(api_client: TestClient) -> None:
     assert by_id.json()["module"] == "Java基础"
     assert search.status_code == 200
     assert search.json()["count"] == 1
+
+
+def test_interview_websocket_submit_answer_protocol(
+    api_client: TestClient,
+) -> None:
+    with api_client.websocket_connect("/ws/interview") as websocket:
+        connected = websocket.receive_json()
+        assert connected["type"] == "connection_open"
+
+        websocket.send_json(
+            {
+                "type": "submit_answer",
+                "question_id": "hashmap-basic",
+                "answer": "数组、链表和红黑树。",
+            }
+        )
+
+        chunk = websocket.receive_json()
+        complete = websocket.receive_json()
+
+        assert chunk == {
+            "type": "evaluation_chunk",
+            "content": "已收到答案，正在进入评估流程...",
+        }
+        assert complete["type"] == "evaluation_complete"
+        assert complete["question_id"] == "hashmap-basic"
+        assert complete["status"] == "received"
+        assert complete["answer_length"] == 10
+
+
+def test_interview_websocket_reports_unknown_message_type(
+    api_client: TestClient,
+) -> None:
+    with api_client.websocket_connect("/ws/interview") as websocket:
+        websocket.receive_json()
+        websocket.send_json({"type": "unknown"})
+
+        error = websocket.receive_json()
+
+        assert error["type"] == "error"
+        assert "不支持的消息类型" in error["message"]

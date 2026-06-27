@@ -1162,7 +1162,7 @@ python scripts/cli_interface.py
 **完成标志**:
 - [x] FastAPI 服务器能启动
 - [x] 基础 REST API 正常工作（会话、统计、题目查询）
-- [ ] WebSocket 连接稳定
+- [x] WebSocket 连接稳定（协议骨架已实现，真实 LLM 流式评分待接入）
 
 **验证方式**:
 ```bash
