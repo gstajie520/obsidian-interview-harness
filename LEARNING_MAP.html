@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 面试陪练系统学习地图</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --paper-deep: #e5dccb;
+      --ink: #1c2524;
+      --muted: #64706d;
+      --line: #2f4742;
+      --green: #0f6b57;
+      --teal: #168a8f;
+      --yellow: #d3941f;
+      --red: #b0442f;
+      --blue: #2f5f8f;
+      --card: rgba(255, 252, 242, 0.88);
+      --shadow: 0 18px 45px rgba(42, 43, 35, 0.16);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "LXGW WenKai", "Microsoft YaHei UI", "Noto Serif SC", "Songti SC", serif;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(211, 148, 31, 0.25), transparent 28%),
+        radial-gradient(circle at 86% 15%, rgba(22, 138, 143, 0.22), transparent 30%),
+        linear-gradient(135deg, var(--paper), #fbf6e9 52%, var(--paper-deep));
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.26;
+      background-image:
+        linear-gradient(rgba(47, 71, 66, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47, 71, 66, 0.08) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+
+    main {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 44px 0 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 30px;
+    }
+
+    .hero-card,
+    .memory-card,
+    .panel,
+    .node,
+    .flow-step,
+    .table-wrap,
+    .flashcard {
+      background: var(--card);
+      border: 1px solid rgba(47, 71, 66, 0.16);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card {
+      border-radius: 34px;
+      padding: 38px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -70px;
+      top: -80px;
+      border: 38px solid rgba(15, 107, 87, 0.12);
+      border-radius: 50%;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--green);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 34px;
+      height: 2px;
+      background: var(--green);
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(38px, 5.2vw, 76px);
+      line-height: 0.96;
+      letter-spacing: -0.06em;
+      max-width: 900px;
+    }
+
+    .hero p {
+      font-size: 18px;
+      line-height: 1.9;
+      color: var(--muted);
+      margin: 0;
+      max-width: 840px;
+    }
+
+    .memory-card {
+      border-radius: 34px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+      background:
+        linear-gradient(145deg, rgba(28, 37, 36, 0.92), rgba(15, 107, 87, 0.88)),
+        var(--line);
+      color: #fff9e9;
+    }
+
+    .memory-card h2 {
+      margin: 0 0 18px;
+      font-size: 30px;
+      letter-spacing: -0.04em;
+    }
+
+    .memory-card ol {
+      margin: 0;
+      padding-left: 22px;
+      line-height: 1.85;
+      color: rgba(255, 249, 233, 0.86);
+    }
+
+    .tagline {
+      margin-top: 24px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 249, 233, 0.11);
+      border: 1px solid rgba(255, 249, 233, 0.18);
+      font-weight: 800;
+      line-height: 1.7;
+    }
+
+    .section-title {
+      margin: 46px 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: clamp(28px, 3vw, 42px);
+      letter-spacing: -0.05em;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(120px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .flow-step {
+      min-height: 150px;
+      border-radius: 22px;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+      animation: rise 600ms ease both;
+    }
+
+    .flow-step:nth-child(2) { animation-delay: 60ms; }
+    .flow-step:nth-child(3) { animation-delay: 120ms; }
+    .flow-step:nth-child(4) { animation-delay: 180ms; }
+    .flow-step:nth-child(5) { animation-delay: 240ms; }
+    .flow-step:nth-child(6) { animation-delay: 300ms; }
+    .flow-step:nth-child(7) { animation-delay: 360ms; }
+    .flow-step:nth-child(8) { animation-delay: 420ms; }
+
+    .flow-step::after {
+      content: ">";
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(47, 71, 66, 0.22);
+      font-size: 30px;
+      font-family: Georgia, serif;
+    }
+
+    .flow-step:last-child::after {
+      content: "";
+    }
+
+    .flow-step strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: var(--line);
+    }
+
+    .flow-step small {
+      display: block;
+      line-height: 1.65;
+      color: var(--muted);
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .lane {
+      display: grid;
+      gap: 16px;
+    }
+
+    .node {
+      border-radius: var(--radius);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .node h3 {
+      margin: 0 0 14px;
+      font-size: 24px;
+      letter-spacing: -0.04em;
+    }
+
+    .node ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .node.center {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background:
+        linear-gradient(155deg, rgba(255, 252, 242, 0.92), rgba(220, 234, 225, 0.88));
+      border: 2px solid rgba(15, 107, 87, 0.24);
+    }
+
+    .node.center h3 {
+      font-size: clamp(32px, 3.8vw, 58px);
+      color: var(--green);
+      line-height: 1;
+    }
+
+    .loop-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .loop-chip {
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(15, 107, 87, 0.09);
+      border: 1px solid rgba(15, 107, 87, 0.18);
+    }
+
+    .loop-chip b {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .loop-chip span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .accent-cli { border-top: 8px solid var(--blue); }
+    .accent-agent { border-top: 8px solid var(--green); }
+    .accent-registry { border-top: 8px solid var(--yellow); }
+    .accent-tools { border-top: 8px solid var(--teal); }
+    .accent-data { border-top: 8px solid var(--red); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .panel h3 {
+      margin: 0 0 16px;
+      font-size: 26px;
+      letter-spacing: -0.04em;
+    }
+
+    .path {
+      display: grid;
+      gap: 10px;
+    }
+
+    .path div {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.52);
+      border: 1px solid rgba(47, 71, 66, 0.12);
+      color: var(--line);
+      line-height: 1.55;
+    }
+
+    .table-wrap {
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255, 252, 242, 0.88);
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(47, 71, 66, 0.13);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+
+    th {
+      background: rgba(28, 37, 36, 0.92);
+      color: #fff9e9;
+      font-weight: 800;
+    }
+
+    code {
+      font-family: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+      background: rgba(47, 71, 66, 0.1);
+      border-radius: 8px;
+      padding: 2px 6px;
+    }
+
+    .flashcards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .flashcard {
+      border-radius: 22px;
+      padding: 20px;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .flashcard b {
+      color: var(--green);
+      font-size: 15px;
+      letter-spacing: 0.08em;
+    }
+
+    .flashcard p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .final-note {
+      margin-top: 34px;
+      padding: 24px;
+      border-radius: 28px;
+      background: rgba(15, 107, 87, 0.12);
+      border: 1px solid rgba(15, 107, 87, 0.22);
+      color: var(--line);
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .hero,
+      .map-grid,
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .flashcards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 680px) {
+      main {
+        width: min(100vw - 24px, 1480px);
+        padding-top: 24px;
+      }
+
+      .hero-card,
+      .memory-card,
+      .panel,
+      .node {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .flow,
+      .flashcards,
+      .loop-list {
+        grid-template-columns: 1fr;
+      }
+
+      th,
+      td {
+        padding: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">Learning map</div>
+        <h1>AI 面试陪练系统学习地图</h1>
+        <p>
+          这张图只解决一个问题：当你看代码看到后面忘了前面时，快速定位“我现在在哪一层、这段代码负责什么、下一步会流向哪里”。
+        </p>
+      </div>
+      <aside class="memory-card">
+        <div>
+          <h2>先背这条主线</h2>
+          <ol>
+            <li>CLI 接收输入</li>
+            <li>InterviewerAgent 组织角色和工具</li>
+            <li>AgentLoop 反复调用 LLM</li>
+            <li>ToolRegistry 执行工具</li>
+            <li>Tools 读题库或写数据库</li>
+            <li>LLM 组织最终回复</li>
+          </ol>
+        </div>
+        <div class="tagline">口诀：CLI 管输入输出，Agent 管角色，Loop 管循环，Registry 管工具，Tools 管业务，DB 管记忆。</div>
+      </aside>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>一条完整执行链路</h2>
+        <span>从用户输入到面试官回复</span>
+      </div>
+      <div class="flow">
+        <div class="flow-step"><strong>用户输入</strong><small>回答题目、要求换题、查看统计或退出。</small></div>
+        <div class="flow-step"><strong>cli_interview.py</strong><small>命令行外壳，负责 input 和 print。</small></div>
+        <div class="flow-step"><strong>InterviewerAgent</strong><small>面试官角色，持有工具、状态和 AgentLoop。</small></div>
+        <div class="flow-step"><strong>AgentLoop.run</strong><small>把消息、prompt、tools 发给 LLM。</small></div>
+        <div class="flow-step"><strong>LLM 判断</strong><small>决定直接回复，还是发起 tool_call。</small></div>
+        <div class="flow-step"><strong>ToolRegistry</strong><small>解析 tool_call，执行对应 Python 函数。</small></div>
+        <div class="flow-step"><strong>业务工具</strong><small>question_tools 读题库，memory_tools 写数据库。</small></div>
+        <div class="flow-step"><strong>最终回复</strong><small>工具结果回到 LLM，生成面试官文本。</small></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>系统分层地图</h2>
+        <span>中间是心脏，左右是入口和工具</span>
+      </div>
+      <div class="map-grid">
+        <div class="lane">
+          <div class="node accent-cli">
+            <h3>入口层</h3>
+            <ul>
+              <li><code>scripts/cli_interview.py</code></li>
+              <li>打印欢迎页</li>
+              <li>创建 <code>InterviewerAgent</code></li>
+              <li>读取用户输入</li>
+              <li>处理 <code>help</code>、<code>stats</code>、<code>quit</code></li>
+            </ul>
+          </div>
+          <div class="node accent-agent">
+            <h3>角色层</h3>
+            <ul>
+              <li><code>agents/roles/interviewer_agent.py</code></li>
+              <li>继承 <code>Agent</code></li>
+              <li>注册 4 个工具</li>
+              <li>保存 <code>current_question</code></li>
+              <li>保存 <code>session_id</code></li>
+            </ul>
+          </div>
+          <div class="node accent-agent">
+            <h3>Agent 基类层</h3>
+            <ul>
+              <li><code>agents/core/base_agent.py</code></li>
+              <li>读取 <code>harness.yaml</code></li>
+              <li>加载 <code>interviewer.md</code></li>
+              <li>创建 LLM 客户端</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="node center">
+          <h3>AgentLoop.run()</h3>
+          <p>一次用户输入可能触发多轮 LLM，因为 LLM 可能先调用工具，再根据工具结果继续思考。</p>
+          <div class="loop-list">
+            <div class="loop-chip"><b>Think</b><span>构造 messages 和 tools，调用 LLM。</span></div>
+            <div class="loop-chip"><b>Act</b><span>发现 LLM 返回了 tool_calls。</span></div>
+            <div class="loop-chip"><b>Observe</b><span>执行工具，把结果写回 messages。</span></div>
+            <div class="loop-chip"><b>Reflect</b><span>没有工具调用时，返回最终文本。</span></div>
+          </div>
+        </div>
+
+        <div class="lane">
+          <div class="node accent-registry">
+            <h3>工具注册层</h3>
+            <ul>
+              <li><code>agents/core/tool_registry.py</code></li>
+              <li>注册 Python 函数</li>
+              <li>生成 OpenAI tools schema</li>
+              <li>解析 <code>tool_call</code></li>
+              <li>执行对应函数</li>
+            </ul>
+          </div>
+          <div class="node accent-tools">
+            <h3>业务工具层</h3>
+            <ul>
+              <li><code>question_tools.py</code> 读取题库</li>
+              <li><code>memory_tools.py</code> 读写数据库</li>
+              <li>抽题、查模块、查薄弱点</li>
+              <li>保存评分、计算复习时间</li>
+            </ul>
+          </div>
+          <div class="node accent-data">
+            <h3>数据层</h3>
+            <ul>
+              <li><code>知识库/Java面试</code></li>
+              <li><code>.harness/db/learning.db</code></li>
+              <li><code>agents/definitions/interviewer.md</code></li>
+              <li>题目、学习记录、人设规则</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>两条最重要路径</h2>
+        <span>启动一次面试，以及回答一道题</span>
+      </div>
+      <div class="two-col">
+        <div class="panel">
+          <h3>第一次启动面试</h3>
+          <div class="path">
+            <div><code>cli_interview.py</code> 创建 <code>InterviewerAgent()</code></div>
+            <div><code>base_agent.py</code> 加载配置和面试官 prompt</div>
+            <div><code>interviewer_agent.py</code> 注册工具，创建 <code>AgentLoop</code></div>
+            <div><code>start_interview()</code> 创建 <code>session_id</code></div>
+            <div><code>AgentLoop.run()</code> 调 LLM，可能查薄弱模块并抽题</div>
+            <div>返回第一道面试题，CLI 打印给你</div>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>用户回答一道题</h3>
+          <div class="path">
+            <div>CLI 通过 <code>input()</code> 拿到你的回答</div>
+            <div>调用 <code>continue_interview(user_input)</code></div>
+            <div><code>AgentLoop.run()</code> 把回答放入 <code>messages</code></div>
+            <div>LLM 判断这是答案，可能调用 <code>save_evaluation</code></div>
+            <div><code>memory_tools</code> 保存学习记录并安排复习</div>
+            <div>LLM 给出反馈或追问，CLI 打印出来</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>文件职责速查</h2>
+        <span>忘了就先看这一张表</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>文件</th>
+              <th>一句话职责</th>
+              <th>关键点</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>scripts/cli_interview.py</code></td><td>命令行外壳</td><td><code>main()</code>、<code>input()</code>、<code>print()</code></td></tr>
+            <tr><td><code>interviewer_agent.py</code></td><td>组装面试官</td><td><code>_register_tools()</code>、<code>start_interview()</code>、<code>continue_interview()</code></td></tr>
+            <tr><td><code>base_agent.py</code></td><td>Agent 公共底座</td><td>配置、prompt、LLM 客户端</td></tr>
+            <tr><td><code>agent_loop.py</code></td><td>系统心脏</td><td><code>run()</code>、<code>_call_llm()</code>、<code>messages</code></td></tr>
+            <tr><td><code>tool_registry.py</code></td><td>工具电话簿</td><td><code>register()</code>、<code>get_tool_schemas()</code>、<code>execute_tool()</code></td></tr>
+            <tr><td><code>question_tools.py</code></td><td>题库读取</td><td>模块列表、随机抽题、解析 Markdown</td></tr>
+            <tr><td><code>memory_tools.py</code></td><td>学习记忆</td><td>SQLite、学习记录、薄弱模块、复习计划</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">
+        <h2>六张回忆卡片</h2>
+        <span>每天复习 3 分钟</span>
+      </div>
+      <div class="flashcards">
+        <div class="flashcard"><b>卡片 1</b><p>CLI 负责什么？负责命令行输入输出，普通输入交给 Agent。</p></div>
+        <div class="flashcard"><b>卡片 2</b><p>InterviewerAgent 负责什么？组装面试官，注册工具，维护当前题目和会话。</p></div>
+        <div class="flashcard"><b>卡片 3</b><p>AgentLoop 为什么循环？因为 LLM 可能先调工具，再根据结果继续思考。</p></div>
+        <div class="flashcard"><b>卡片 4</b><p>LLM 会直接执行工具吗？不会。它只发 tool_call，ToolRegistry 才真正执行。</p></div>
+        <div class="flashcard"><b>卡片 5</b><p>题目从哪里来？从 <code>知识库/Java面试</code> 的 Markdown 文件来。</p></div>
+        <div class="flashcard"><b>卡片 6</b><p>学习记录存哪里？存在 <code>.harness/db/learning.db</code> 的表里。</p></div>
+      </div>
+    </section>
+
+    <div class="final-note">
+      迷路时只问一句：我现在看的代码是在“输入输出、角色组装、循环调度、工具注册、业务工具、数据存储”中的哪一层？能回答出来，就能接着往下看。
+    </div>
+  </main>
+</body>
+</html>
