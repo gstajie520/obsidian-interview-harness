@@ -14,6 +14,7 @@ TAOR 可以理解成一个会反复工作的“面试助手主循环”：
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 from enum import Enum
@@ -22,6 +23,9 @@ from typing import Any, Dict, Mapping, Optional
 
 JsonDict = Dict[str, Any]
 DEFAULT_LLM_MODEL = "deepseek-chat"
+DEFAULT_LLM_RETRY_ATTEMPTS = 3
+DEFAULT_LLM_RETRY_INITIAL_DELAY = 1.0
+DEFAULT_LLM_RETRY_MAX_DELAY = 30.0
 
 
 class AgentState(str, Enum):
@@ -155,10 +159,53 @@ class AgentLoop:
             # 有工具时才传 `tools` 字段；没有工具时保持请求体简单。
             payload["tools"] = tool_schemas
 
-        response = create(**payload)
-        if inspect.isawaitable(response):
-            response = await response
-        return response
+        retry_attempts = self._positive_int(
+            llm_config.get("retry_attempts"),
+            DEFAULT_LLM_RETRY_ATTEMPTS,
+        )
+        retry_initial_delay = self._non_negative_float(
+            llm_config.get("retry_initial_delay"),
+            DEFAULT_LLM_RETRY_INITIAL_DELAY,
+        )
+        retry_max_delay = self._non_negative_float(
+            llm_config.get("retry_max_delay"),
+            DEFAULT_LLM_RETRY_MAX_DELAY,
+        )
+
+        return await self._create_completion_with_retry(
+            create=create,
+            payload=payload,
+            attempts=retry_attempts,
+            initial_delay=retry_initial_delay,
+            max_delay=retry_max_delay,
+        )
+
+    async def _create_completion_with_retry(
+        self,
+        *,
+        create: Any,
+        payload: JsonDict,
+        attempts: int,
+        initial_delay: float,
+        max_delay: float,
+    ) -> Any:
+        """调用 LLM；遇到瞬时网络/API 错误时指数退避重试。"""
+        for attempt in range(1, attempts + 1):
+            try:
+                response = create(**payload)
+                if inspect.isawaitable(response):
+                    response = await response
+                return response
+            except Exception as exc:
+                is_last_attempt = attempt >= attempts
+                if is_last_attempt or not self._is_retryable_llm_error(exc):
+                    raise
+
+                delay = min(max_delay, initial_delay * (2 ** (attempt - 1)))
+                if delay > 0:
+                    await asyncio.sleep(delay)
+
+        raise RuntimeError("LLM 调用重试逻辑异常结束")
 
     def _llm_client(self) -> Any:
         """取出 agent 上的 LLM 客户端。"""
@@ -244,6 +291,54 @@ class AgentLoop:
         if isinstance(result, str):
             return result
         return json.dumps(result, ensure_ascii=False)
+
+    @staticmethod
+    def _is_retryable_llm_error(exc: Exception) -> bool:
+        """判断 LLM 异常是否适合重试。"""
+        if isinstance(exc, (TimeoutError, ConnectionError)):
+            return True
+
+        status_code = getattr(exc, "status_code", None)
+        if status_code is None:
+            response = getattr(exc, "response", None)
+            status_code = getattr(response, "status_code", None)
+
+        try:
+            status = int(status_code)
+        except (TypeError, ValueError):
+            status = 0
+
+        if status == 429 or status >= 500:
+            return True
+
+        retryable_names = (
+            "APIConnectionError",
+            "APITimeoutError",
+            "InternalServerError",
+            "RateLimitError",
+            "Timeout",
+            "Connection",
+        )
+        exc_name = exc.__class__.__name__
+        return any(name in exc_name for name in retryable_names)
+
+    @staticmethod
+    def _positive_int(value: Any, default: int) -> int:
+        """读取正整数配置；无效时回退默认值。"""
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return default
+        return parsed if parsed > 0 else default
+
+    @staticmethod
+    def _non_negative_float(value: Any, default: float) -> float:
+        """读取非负浮点配置；无效时回退默认值。"""
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return default
+        return parsed if parsed >= 0 else default
 
     @staticmethod
     def _get_value(source: Any, key: str, default: Any = None) -> Any:

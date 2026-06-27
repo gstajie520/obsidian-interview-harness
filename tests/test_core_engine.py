@@ -90,6 +90,39 @@ class FakeLLMClient:
         self.chat = SimpleNamespace(completions=self.completions)
 
 
+class RetryableLLMError(Exception):
+    """测试用可重试 LLM 异常。"""
+
+    status_code = 500
+
+
+class FlakyCompletions:
+    """前几次调用失败，随后成功，用于验证 LLM 重试。"""
+
+    def __init__(self, failures_before_success: int) -> None:
+        self.failures_before_success = failures_before_success
+        self.calls: list[dict[str, Any]] = []
+
+    async def create(self, **payload: Any) -> Any:
+        self.calls.append(payload)
+        if len(self.calls) <= self.failures_before_success:
+            raise RetryableLLMError("temporary upstream failure")
+
+        message = SimpleNamespace(
+            content="重试后成功返回。",
+            tool_calls=None,
+        )
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+
+class FlakyLLMClient:
+    """使用 FlakyCompletions 的最小 LLM 客户端。"""
+
+    def __init__(self, failures_before_success: int) -> None:
+        self.completions = FlakyCompletions(failures_before_success)
+        self.chat = SimpleNamespace(completions=self.completions)
+
+
 class FakeAgent:
     """测试用 Agent，只提供配置、system prompt 和 llm_client。"""
 
@@ -103,6 +136,21 @@ class FakeAgent:
             }
         }
         self.llm_client = FakeLLMClient()
+
+
+class FlakyAgent(FakeAgent):
+    """测试 LLM 重试配置的 Agent。"""
+
+    def __init__(self, failures_before_success: int) -> None:
+        super().__init__()
+        self.config["llm"].update(
+            {
+                "retry_attempts": 3,
+                "retry_initial_delay": 0,
+                "retry_max_delay": 0,
+            }
+        )
+        self.llm_client = FlakyLLMClient(failures_before_success)
 
 
 def test_tool_registry_registers_and_executes_tools() -> None:
@@ -188,6 +236,18 @@ def test_agent_loop_defaults_to_deepseek_when_model_missing() -> None:
     asyncio.run(loop.run("开始模拟面试"))
 
     assert agent.llm_client.completions.calls[0]["model"] == "deepseek-chat"
+
+
+def test_agent_loop_retries_transient_llm_failures() -> None:
+    registry = ToolRegistry()
+    agent = FlakyAgent(failures_before_success=2)
+    loop = AgentLoop(agent=agent, tool_registry=registry, max_rounds=5)
+
+    result = asyncio.run(loop.run("开始模拟面试"))
+
+    assert result == "重试后成功返回。"
+    assert len(agent.llm_client.completions.calls) == 3
+    assert loop.state == AgentState.IDLE
 
 
 def test_agent_llm_config_can_be_overridden_by_environment(

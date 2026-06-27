@@ -245,6 +245,8 @@ class ContextManager:
 
 **问题**: 网络抖动、API 限流会导致失败，没有重试
 
+**当前状态**: 已在 `agents/core/agent_loop.py` 的 LLM completion 调用处实现可配置重试，默认 3 次，支持 `retry_attempts`、`retry_initial_delay`、`retry_max_delay` 配置。
+
 **影响**:
 - 🟡 稳定性差
 - 🟡 用户体验不好
@@ -357,7 +359,7 @@ async def execute_tools_parallel(self, tool_calls):
 
 | 模块 | 优先级 | 时间 | 理由 |
 |------|-------|------|------|
-| **重试机制** | 🟡 P1 | 0.5h | 提升稳定性 |
+| **重试机制** | ✅ 已完成 | 0.5h | 提升稳定性 |
 | **并行工具执行** | 🟡 P1 | 1h | 性能优化 |
 
 **总计**: 6小时（P0 + P1）
