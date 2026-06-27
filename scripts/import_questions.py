@@ -42,7 +42,11 @@ def parse_args() -> argparse.Namespace:
 
 
 def import_questions(module: Optional[str] = None) -> int:
-    """导入题目元数据，返回成功导入的题目数量。"""
+    """导入题目元数据，返回本次新增的题目数量。
+
+    这里的“新增”很重要：重复运行导入脚本时，已经存在的题不会重复计数。
+    这样用户看到 `0 条` 时，就知道不是失败，而是数据库已经导入过了。
+    """
     # 如果传了 module，只导入这一个模块；否则导入全部模块。
     modules = [module] if module else question_tools.get_all_modules()
     imported_count = 0
@@ -55,13 +59,16 @@ def import_questions(module: Optional[str] = None) -> int:
                 continue
 
             # 这里只初始化元数据，真正答题记录由面试过程写入。
-            memory_tools.init_question_metadata(
+            # inserted 是 bool 类型，类似 Java 里 boolean inserted。
+            # True 表示本次插入成功；False 表示题目已存在，被数据库忽略。
+            inserted = memory_tools.init_question_metadata(
                 question_id=question.question_id,
                 file_path=question.file_path,
                 module=question.module,
                 title=question.title,
             )
-            imported_count += 1
+            if inserted:
+                imported_count += 1
 
     return imported_count
 

@@ -114,8 +114,14 @@ def init_question_metadata(
     file_path: str,
     module: str,
     title: str,
-) -> None:
-    """初始化题目元数据；已存在时忽略。"""
+) -> bool:
+    """初始化题目元数据；返回是否实际新增。
+
+    这个函数只负责登记“题目基本信息”，不代表用户已经答过题。
+    返回 bool 是为了让导入脚本能区分：
+    - True：数据库里原来没有这道题，本次真的新增了。
+    - False：这道题已经存在，本次被忽略。
+    """
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -125,8 +131,13 @@ def init_question_metadata(
         ),
         (question_id, file_path, module, title),
     )
+    # rowcount 表示本次 SQL 影响了几行；可以类比 Java JDBC 里
+    # executeUpdate() 返回的更新行数。INSERT OR IGNORE 遇到重复主键时
+    # 不会插入新行，所以 rowcount 会是 0。
+    inserted = int(getattr(cursor, "rowcount", 0) or 0) > 0
     conn.commit()
     conn.close()
+    return inserted
 
 
 def get_question_metadata(question_id: str) -> Optional[Dict[str, Any]]:
