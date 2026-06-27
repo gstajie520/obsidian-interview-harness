@@ -93,10 +93,10 @@ class AgentLoop:
                 self.state = AgentState.EXECUTING
                 self.messages.append(self._assistant_tool_message(message))
 
-                # Observe：执行每个工具，再把工具结果作为 tool 消息写回历史。
+                # Observe：并行执行同一轮工具，再把结果作为 tool 消息写回历史。
                 self.state = AgentState.OBSERVING
-                for tool_call in tool_calls:
-                    result = await self.tool_registry.execute_tool(tool_call)
+                results = await self._execute_tool_calls(tool_calls)
+                for tool_call, result in zip(tool_calls, results):
                     self.messages.append(
                         self._tool_result_message(tool_call, result)
                     )
@@ -137,6 +137,20 @@ class AgentLoop:
             self.messages,
             self._llm_client(),
         )
+
+    async def _execute_tool_calls(self, tool_calls: list[Any]) -> list[Any]:
+        """并行执行同一轮工具调用，并保持返回结果顺序稳定。"""
+        tasks = [
+            self.tool_registry.execute_tool(tool_call)
+            for tool_call in tool_calls
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        return [
+            {"error": f"工具执行异常: {result}"}
+            if isinstance(result, BaseException)
+            else result
+            for result in results
+        ]
 
     async def _call_llm(self) -> Any:
         """调用 OpenAI 兼容的 chat.completions.create 接口。"""

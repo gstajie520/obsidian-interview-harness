@@ -286,6 +286,8 @@ async def call_llm_with_retry(self, messages):
 
 **问题**: 多个工具只能串行执行
 
+**当前状态**: 已在 `agents/core/agent_loop.py` 中实现同一轮工具调用并行执行，使用 `asyncio.gather(..., return_exceptions=True)` 并保持 tool 消息写回顺序稳定。
+
 **影响**:
 - 🟡 性能慢（但面试场景影响不大）
 
@@ -360,7 +362,7 @@ async def execute_tools_parallel(self, tool_calls):
 | 模块 | 优先级 | 时间 | 理由 |
 |------|-------|------|------|
 | **重试机制** | ✅ 已完成 | 0.5h | 提升稳定性 |
-| **并行工具执行** | 🟡 P1 | 1h | 性能优化 |
+| **并行工具执行** | ✅ 已完成 | 1h | 性能优化 |
 
 **总计**: 6小时（P0 + P1）
 

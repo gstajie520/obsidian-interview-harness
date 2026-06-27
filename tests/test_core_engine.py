@@ -123,6 +123,46 @@ class FlakyLLMClient:
         self.chat = SimpleNamespace(completions=self.completions)
 
 
+class ParallelToolCompletions:
+    """一次 LLM 响应里同时请求多个工具调用。"""
+
+    def __init__(self) -> None:
+        self.calls: list[dict[str, Any]] = []
+
+    async def create(self, **payload: Any) -> Any:
+        self.calls.append(payload)
+        if len(self.calls) == 1:
+            message = SimpleNamespace(
+                content="请并行执行两个工具。",
+                tool_calls=[
+                    make_tool_call(
+                        "call-a",
+                        "wait_for_peer",
+                        {"name": "A"},
+                    ),
+                    make_tool_call(
+                        "call-b",
+                        "wait_for_peer",
+                        {"name": "B"},
+                    ),
+                ],
+            )
+        else:
+            message = SimpleNamespace(
+                content="并行工具调用已完成。",
+                tool_calls=None,
+            )
+        return SimpleNamespace(choices=[SimpleNamespace(message=message)])
+
+
+class ParallelToolLLMClient:
+    """使用 ParallelToolCompletions 的最小 LLM 客户端。"""
+
+    def __init__(self) -> None:
+        self.completions = ParallelToolCompletions()
+        self.chat = SimpleNamespace(completions=self.completions)
+
+
 class FakeAgent:
     """测试用 Agent，只提供配置、system prompt 和 llm_client。"""
 
@@ -151,6 +191,14 @@ class FlakyAgent(FakeAgent):
             }
         )
         self.llm_client = FlakyLLMClient(failures_before_success)
+
+
+class ParallelToolAgent(FakeAgent):
+    """测试同一轮多个工具并行执行的 Agent。"""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.llm_client = ParallelToolLLMClient()
 
 
 def test_tool_registry_registers_and_executes_tools() -> None:
@@ -248,6 +296,39 @@ def test_agent_loop_retries_transient_llm_failures() -> None:
     assert result == "重试后成功返回。"
     assert len(agent.llm_client.completions.calls) == 3
     assert loop.state == AgentState.IDLE
+
+
+def test_agent_loop_executes_same_round_tools_in_parallel() -> None:
+    registry = ToolRegistry()
+    started: list[str] = []
+    both_started = asyncio.Event()
+
+    @registry.register()
+    async def wait_for_peer(name: str) -> str:
+        started.append(name)
+        if len(started) == 2:
+            both_started.set()
+        await both_started.wait()
+        return f"{name}-done"
+
+    agent = ParallelToolAgent()
+    loop = AgentLoop(agent=agent, tool_registry=registry, max_rounds=5)
+
+    result = asyncio.run(asyncio.wait_for(loop.run("开始并行工具测试"), 1))
+
+    assert result == "并行工具调用已完成。"
+    tool_messages = [
+        message for message in loop.get_messages()
+        if message["role"] == "tool"
+    ]
+    assert [message["tool_call_id"] for message in tool_messages] == [
+        "call-a",
+        "call-b",
+    ]
+    assert [message["content"] for message in tool_messages] == [
+        "A-done",
+        "B-done",
+    ]
 
 
 def test_agent_llm_config_can_be_overridden_by_environment(
