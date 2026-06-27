@@ -797,6 +797,8 @@ curl http://localhost:8000/api/stats/overview
 
 **文件**: `agents/roles/scheduler_agent.py`
 
+**当前状态**: 已实现最小业务能力：生成每日复习清单、调用 SM-2 更新下次复习时间、通过 `process()` 路由调度动作。
+
 **核心算法**: SuperMemo SM-2
 
 **功能**:
