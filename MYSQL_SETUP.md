@@ -293,10 +293,12 @@ python -m agents.tools.memory_tools
 
 ## 🎯 下一步
 
-配置完成后，继续实施计划：
+MySQL 当前是可选方案；默认开发路径仍然是 SQLite。如果你确实要用 MySQL，配置完成后继续：
 
 1. ✅ 数据库配置完成
-2. ⏳ 运行 `python scripts/import_questions.py` 导入题库
-3. ⏳ 开始实现面试官 Agent
+2. ⏳ 根据 `.harness/config/harness.yaml` 切换数据库类型和连接信息
+3. ⏳ 运行 `python scripts/init_database_mysql.py` 初始化 MySQL schema
+4. ⏳ 运行 `python scripts/import_questions.py` 导入题库元数据
+5. ⏳ 运行 `python -m pytest tests -q` 验证功能没有被数据库切换破坏
 
 参考 `PLAN.md` 继续后续步骤！

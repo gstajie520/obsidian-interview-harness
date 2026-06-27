@@ -634,7 +634,8 @@ if tool_name not in self._tools:
 - ✅ 能够运行和调试系统
 
 ### 中级目标（3-4 周）
-- ⬜ 实现新的 Agent（如复习调度 Agent）
+- ✅ 理解复习调度 Agent 的基础实现
+- ⬜ 实现新的业务 Agent（如监督助手、错题分析师）
 - ⬜ 添加复杂工具（如知识图谱工具）
 - ⬜ 优化 Context Manager（压缩策略）
 

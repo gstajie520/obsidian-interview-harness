@@ -153,7 +153,7 @@ AI-Knowledge/
 │   │   └── tool_registry.py        # 工具注册和执行
 │   ├── roles/                      # 具体 Agent 角色
 │   │   ├── interviewer_agent.py    # 面试官 Agent
-│   │   ├── scheduler_agent.py      # 复习调度器骨架
+│   │   ├── scheduler_agent.py      # 复习调度器基础能力
 │   │   ├── linker_agent.py         # 知识关联器骨架
 │   │   ├── analyzer_agent.py       # 错题分析师骨架
 │   │   ├── supervisor_agent.py     # 监督助手骨架

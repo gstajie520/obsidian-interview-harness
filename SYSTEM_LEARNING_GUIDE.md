@@ -247,6 +247,7 @@ memory_tools.calculate_next_review(question_id, overall_score)
 ```text
 scripts/
 ├── cli_interview.py       命令行面试入口
+├── harness_server.py      FastAPI / WebSocket 服务入口
 ├── import_questions.py    导入题库元数据
 ├── init_database.py       初始化 SQLite 数据库
 ├── test_agent_loop.py     核心引擎冒烟测试
@@ -278,7 +279,7 @@ agents/core/
 ```text
 agents/roles/
 ├── interviewer_agent.py  面试官，目前最完整
-├── scheduler_agent.py    复习调度器，骨架
+├── scheduler_agent.py    复习调度器，基础能力已实现
 ├── linker_agent.py       知识关联器，骨架
 ├── analyzer_agent.py     错题分析师，骨架
 ├── supervisor_agent.py   监督助手，骨架
@@ -419,6 +420,12 @@ tests/test_import_questions.py
 
 tests/test_config_defaults.py
   学默认配置为什么必须保持 SQLite 零配置
+
+tests/test_harness_server.py
+  学 FastAPI 会话、统计、题目查询接口怎么被验证
+
+tests/test_scheduler_agent.py
+  学复习调度器怎么生成每日清单、更新下次复习时间
 ```
 
 推荐阅读方法：

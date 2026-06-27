@@ -1,6 +1,6 @@
 # LangChain/LangGraph 集成指南
 
-> **更新**: 2026-06-24  
+> **更新**: 2026-06-28  
 > **目的**: 学习和对比原生实现 vs 框架实现
 
 ---
@@ -10,9 +10,9 @@
 ### 渐进式引入（三阶段）
 
 ```
-Phase 0.5: 原生实现 Agent Loop
+Phase 0.5: 原生实现 Agent Loop（已完成）
   ↓
-Phase 1: 引入 LangChain 工具系统
+Phase 1: 对比 LangChain 工具系统
   ↓
 Phase 2: 尝试 LangGraph 状态图
   ↓
@@ -239,7 +239,7 @@ result = app.invoke({"messages": [HumanMessage(content="开始面试")]})
 
 ## 🎓 学习路径
 
-### 第一周：原生实现（Phase 0.5）
+### 已完成：原生实现（Phase 0.5）
 
 **目标**: 深入理解 Agent Loop 原理
 
@@ -260,7 +260,7 @@ while not should_exit():
         return response.content
 ```
 
-### 第二周：LangChain 工具（Phase 1）
+### 下一步可选：LangChain 工具（Phase 1）
 
 **目标**: 学习工具系统最佳实践
 

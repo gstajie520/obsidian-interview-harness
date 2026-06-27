@@ -1,14 +1,14 @@
 # AI 面试陪练系统 - 项目上下文
 
 > **项目**: AI Interview Coach powered by Agent Harness  
-> **版本**: 1.0.0  
-> **更新**: 2026-06-24
+> **版本**: 1.1.0  
+> **更新**: 2026-06-28
 
 ---
 
 ## AI 协作执行规则
 
-本节是给 AI 编码助手看的硬性执行规则。执行代码修改、文档修改或 Git 提交时，必须优先遵守本节。
+本节是给 Claude、Codex、Cursor 等 AI 编码助手看的硬性规则。执行代码修改、文档修改或 Git 提交时，必须优先遵守本节。
 
 ### Git 提交硬性规则
 
@@ -17,8 +17,7 @@
 - 提交信息必须使用格式：`<type>(<scope>): <中文描述>`。
 - `scope` 必须填写，使用小写英文、数字、短横线或下划线，例如 `agents`、`python-comments`、`git-rules`。
 - 允许的 `type`：`feat`、`fix`、`docs`、`style`、`refactor`、`test`、`chore`、`perf`。
-- 正确示例：`docs(python-comments): 补充初学者代码注释`。
-- 错误示例：`refactor: standardize agents project structure`，原因是缺少 scope 且 subject 为英文。
+- 正确示例：`docs(project): 同步项目文档状态`。
 - 每次完成文件修改并验证后必须提交；同一任务内相关文件可以合并为一个提交。
 - 除非用户明确说“不要提交”或“先别提交”，否则最终回复前不能留下未提交修改。
 - `git add`、`git commit`、`git reset`、`git config` 等会写入 `.git` 的命令禁止并行执行。
@@ -30,657 +29,289 @@
 git config core.hooksPath .githooks
 ```
 
----
+### 学习型开发规则
 
-## 📌 项目概述
+项目维护者是 Python 初学者，有 Java 基础。AI 修改 Python 代码时，必须兼顾“功能实现”和“学习可读性”：
 
-这是一个基于 **Agent Harness 架构**的**通用智能面试助手系统**，支持多个面试领域（Java、Python、前端、算法等）。系统包含 6 个协作 Agent，具备持久记忆、智能调度、自动进化等能力。
-
-### 通用性设计
-
-- ✅ **多知识库支持**：可扩展到任何面试领域
-- ✅ **统一的 Agent 架构**：所有知识库共享相同的 Agent
-- ✅ **灵活配置**：通过配置文件添加新知识库
-- ✅ **独立的学习记录**：每个知识库独立追踪学习进度
-
-### 核心特性
-
-- ✅ **多知识库支持**：Java、Python、前端、算法等（可扩展）
-- ✅ **6 个专业 Agent**：面试官、复习调度器、知识关联器、错题分析师、监督助手、陪练伙伴
-- ✅ **三层记忆系统**：短期（会话）、中期（学习记录）、长期（用户画像）
-- ✅ **智能复习调度**：基于 SM-2 算法的遗忘曲线管理
-- ✅ **知识图谱关联**：自动发现题目之间的关联
-- ✅ **数据驱动分析**：精准识别薄弱环节，生成学习报告
+- 业务流程要写清楚：关键函数、数据流、数据库写入、Agent 调用链路都要让初学者能跟上。
+- 对 Python 特有语法要适当补充注释，例如装饰器、上下文管理器、列表推导式、`async/await`、`Optional`、`dict.get()`、解包、`dataclass`。
+- 优先用 Java 类比解释，例如“类似 Java 的 Map / POJO / try-with-resources / super(...)”。
+- 注释解释“为什么这样做”和“这一步在流程里的作用”，不要写无意义注释，例如“把 a 赋值给 a”。
+- 新增或修改复杂逻辑时，优先拆成小函数，并给函数写清楚 docstring，便于边开发边学习 Python、Agent Harness 和 AI 工程知识。
 
 ---
 
-## 🎓 学习模式
+## 项目定位
 
-本项目采用**双轨实现**，既能深入理解原理，又能学习主流框架：
+这是一个基于 **Agent Harness 架构** 的 AI 面试陪练系统。当前默认使用本地 SQLite 记忆库，逐步扩展为多 Agent、API 服务、Web UI 和 Obsidian 集成。
 
-### 实现方案对比
+核心目标：
 
-| 方案 | 优势 | 适用场景 |
-|------|------|---------|
-| **原生实现** | 完全掌控、深入理解 Agent Loop 原理 | 学习、定制化需求 |
-| **LangChain** | 快速开发、丰富的工具生态 | 快速原型、标准化场景 |
-| **LangGraph** | 可视化流程、灵活编排 | 复杂多步骤任务 |
-
-### 学习路径
-
-```
-第一周（Phase 0.5）: 原生实现 Agent Loop
-  ↓ 理解 TAOR 循环原理
-第二周（Phase 1）: 引入 LangChain 工具系统
-  ↓ 学习工具封装最佳实践
-第三周（Phase 2）: 尝试 LangGraph 状态图
-  ↓ 学习复杂 Agent 编排
-对比分析: 选择最适合的方案
-```
-
-详细说明见 `LANGCHAIN_INTEGRATION.md`
+- 从 `知识库/` 中读取 Markdown 面试题。
+- 使用面试官 Agent 发起提问、追问和评分。
+- 将学习记录、题目掌握度和复习时间写入 `.harness/db/learning.db`。
+- 根据答题记录识别薄弱模块，并通过 SM-2 思路安排复习。
+- 最终形成 6 个协作 Agent：面试官、复习调度器、知识关联器、错题分析师、监督助手、陪练伙伴。
 
 ---
 
-## 🌟 通用性设计
+## 当前真实进度
 
-### 知识库架构
-
-系统采用**知识库抽象层**，支持多个面试领域：
-
-```yaml
-知识库配置（knowledge_bases.yaml）:
-  java_interview:      # Java 面试（已有 1346 题）
-    path: "知识库/Java面试"
-    enabled: true
-  
-  python_interview:    # Python 面试（待扩展）
-    path: "知识库/Python面试"
-    enabled: false
-  
-  frontend_interview:  # 前端面试（待扩展）
-    path: "知识库/前端面试"
-    enabled: false
-```
-
-### Agent 通用性
-
-所有 Agent 都是**知识库无关**的：
-- ✅ 面试官 Agent：可以面试任何领域
-- ✅ 复习调度器：SM-2 算法适用于所有知识
-- ✅ 知识关联器：基于 TF-IDF，适用于任何文本
-- ✅ 错题分析师：分析逻辑通用
-
-### 扩展新知识库
-
-添加新知识库只需 3 步：
-
-```bash
-# 1. 创建目录
-mkdir -p "知识库/Python面试"
-
-# 2. 添加题目（Markdown 格式）
-# 3. 更新配置文件 knowledge_bases.yaml
-```
+| 模块 | 状态 | 说明 |
+|---|---|---|
+| Agent 核心引擎 | 已实现 | `AgentLoop`、`ToolRegistry`、`ContextManager`、`BaseAgent` |
+| LLM 调用重试 | 已实现 | `AgentLoop` 内置指数退避重试，处理网络抖动和临时 API 错误 |
+| 并行工具执行 | 已实现 | 同一轮多个 tool call 可并行执行 |
+| 面试官 Agent | 已实现 MVP | 可启动基础面试闭环，支持工具注册和学习记录写入 |
+| 题库导入 | 已实现 | `scripts/import_questions.py` 支持幂等导入，重复执行不会重复写入元数据 |
+| 记忆工具 | 已实现 | 学习记录、题目元数据、薄弱模块、复习时间 |
+| 数据库 | SQLite 默认、MySQL 可选 | 零配置优先使用 SQLite；MySQL 有 schema 和说明，但不是默认启动方式 |
+| CLI | 已实现 | `scripts/cli_interview.py` 是当前主要交互入口 |
+| FastAPI 服务 | 已实现基础能力 | 会话、统计、题目查询、健康检查接口可用 |
+| WebSocket | 协议骨架已实现 | `/ws/interview` 可联调实时消息，真实 LLM 流式评分待接入 |
+| 复习调度器 Agent | 部分实现 | 可生成每日复习清单，并更新题目下次复习时间 |
+| 其他角色 Agent | 骨架/规划中 | `LinkerAgent`、`AnalyzerAgent`、`SupervisorAgent`、`BuddyAgent` 待实现业务能力 |
+| 多 Agent 编排 | 未实现 | 还没有统一 orchestrator 和消息总线 |
+| Web UI | 未实现 | API 已具备前端联调基础 |
+| Obsidian 自动导出 | 未实现 | 现阶段仍以数据库和 Markdown 知识库为主 |
 
 ---
 
-## 🏗️ 技术栈
+## 技术栈
 
 ### 后端
+
 - **语言**: Python 3.9+
-- **框架**: FastAPI（REST API + WebSocket）
-- **数据库**: MySQL 8.0+
-- **LLM**: OpenAI SDK（兼容 DeepSeek API，默认模型：deepseek-chat，可配置）
-- **Agent 框架**: 
-  - 原生实现（深入理解原理）
-  - LangChain（工具系统）
-  - LangGraph（状态图编排）
-- **向量检索**: Chroma（知识关联）
-- **Token 管理**: tiktoken
+- **API**: FastAPI + WebSocket
+- **默认数据库**: SQLite，配置模板为 `.harness/config/harness.yaml.example`
+- **可选数据库**: MySQL，参考 `MYSQL_SETUP.md`
+- **LLM SDK**: OpenAI 兼容接口，默认模型为 DeepSeek `deepseek-chat`
+- **配置**: PyYAML + python-dotenv
+- **测试**: pytest + `scripts/test_agent_loop.py`
 
-### 前端（计划）
-- **框架**: React 18 + TypeScript
-- **UI 库**: Ant Design
-- **状态管理**: Zustand
-- **图表**: ECharts
+### AI / Agent Harness
 
-### 数据存储
-- **结构化数据**: MySQL（学习记录、用户画像、复习队列）
-- **文件存储**: Markdown（Obsidian 笔记、会话归档）
+- **AgentLoop**: 手写 TAOR 循环，帮助学习 Agent Harness 原理。
+- **ToolRegistry**: 将普通 Python 函数包装成 LLM 可调用工具。
+- **ContextManager**: 统计 token，并在上下文过长时压缩消息。
+- **未来方向**: 在理解原生实现后，再对比学习 LangChain / LangGraph。
+
+### 前端和集成规划
+
+- **Web UI**: 计划使用 React + TypeScript + Vite。
+- **Obsidian**: 计划自动生成学习记录、周报和错题笔记。
 
 ---
 
-## 📂 项目结构
+## 项目结构
 
-```
-AI-Knowledge/
-├── 知识库/                          # 通用知识库（可扩展）
-│   ├── Java面试/                    # Java 技术面试（1346题）
-│   │   ├── Java基础/
-│   │   ├── JVM/
-│   │   ├── Java并发/
-│   │   └── ...（54个模块）
-│   │
-│   ├── Python面试/                  # 待扩展
-│   ├── 前端面试/                    # 待扩展
-│   └── 算法面试/                    # 待扩展
-│
-├── 学习记录/                        # 按知识库分类
-│   ├── Java面试/
-│   │   ├── 每日对话/
-│   │   ├── 周报/
-│   │   ├── 错题本/
-│   │   └── 知识图谱/
-│   │
-│   ├── Python面试/
-│   └── ...
-│
-├── agents/                          # 标准 Python Agents 包（正式实现）
-│   ├── core/                        # 通用执行引擎
-│   │   ├── base_agent.py            # Agent 基类
-│   │   ├── agent_loop.py            # TAOR 循环
-│   │   ├── tool_registry.py         # 工具注册
-│   │   └── context_manager.py       # 上下文管理
-│   │
-│   ├── roles/                       # 具体 Agent 角色
-│   │   ├── interviewer_agent.py     # 面试官（已实现）
-│   │   ├── scheduler_agent.py       # 复习调度器（规划）
-│   │   ├── linker_agent.py          # 知识关联器（规划）
-│   │   ├── analyzer_agent.py        # 错题分析师（规划）
-│   │   ├── supervisor_agent.py      # 监督助手（规划）
-│   │   └── buddy_agent.py           # 陪练伙伴（规划）
-│   │
-│   ├── tools/                       # Agent 可调用工具
-│   │   ├── question_tools.py        # 题库工具
-│   │   └── memory_tools.py          # 记忆工具
-│   │
-│   └── definitions/                 # Agent 角色定义文档
-│       ├── interviewer.md
-│       ├── scheduler.md
-│       ├── linker.md
-│       ├── analyzer.md
-│       ├── buddy.md
-│       ├── supervisor.md
-│       ├── orchestrator.md
-│       ├── memory-reviewer.md
-│       └── material-curator.md
-│
-├── .harness/                        # 配置、记忆和数据库
-│   ├── config/
-│   │   ├── harness.yaml             # 主配置
-│   │   ├── agents_config.yaml       # Agent 配置
-│   │   └── knowledge_bases.yaml     # 知识库配置
-│   │
-│   ├── memory/                      # 长期记忆文件
-│   │   ├── USER.md                  # 用户画像
-│   │   ├── MEMORY.md                # 记忆索引
-│   │   └── session-archive/         # 会话归档
-│   │
-│   ├── db/                          # 数据库 Schema / SQLite 文件
-│   │   ├── schema_mysql.sql
-│   │   └── schema.sql
-│
-├── scripts/                         # 工具脚本
-│   ├── init_database_mysql.py       # 数据库初始化
-│   ├── cli_interview.py             # 命令行界面
+```text
+obsidian-interview-harness/
+├── agents/
+│   ├── core/
+│   │   ├── base_agent.py            # Agent 基类：配置、prompt、LLM 客户端
+│   │   ├── agent_loop.py            # TAOR 循环、LLM 重试、并行工具执行
+│   │   ├── context_manager.py       # 上下文 token 统计和压缩
+│   │   └── tool_registry.py         # 工具注册和执行
+│   ├── roles/
+│   │   ├── interviewer_agent.py     # 面试官 MVP
+│   │   ├── scheduler_agent.py       # 复习调度器部分实现
+│   │   ├── linker_agent.py          # 知识关联器骨架
+│   │   ├── analyzer_agent.py        # 错题分析师骨架
+│   │   ├── supervisor_agent.py      # 监督助手骨架
+│   │   └── buddy_agent.py           # 陪练伙伴骨架
+│   ├── tools/
+│   │   ├── question_tools.py        # Markdown 题库读取
+│   │   └── memory_tools.py          # SQLite/MySQL 记忆读写
+│   └── definitions/                 # 各 Agent 的 system prompt
+├── scripts/
+│   ├── cli_interview.py             # 命令行面试入口
+│   ├── harness_server.py            # FastAPI / WebSocket 服务
+│   ├── import_questions.py          # 题库元数据导入
+│   ├── init_database.py             # 初始化 SQLite
+│   ├── init_database_mysql.py       # 初始化 MySQL（可选）
 │   ├── demo_full_flow.py            # 完整流程演示
-│   └── test_agent_loop.py           # 核心引擎测试
-│
-├── tests/                           # 单元测试
-│   └── test_core_engine.py          # 核心引擎测试
-│
-├── web_ui/                          # Web 前端（计划）
-│
-├── requirements.txt                 # Python 依赖
-├── PLAN.md                          # 实施计划
-├── AGENTS.md                        # Agent 架构文档
-├── CLAUDE.md                        # 本文档
-├── MYSQL_SETUP.md                   # MySQL 配置指南
-└── COMPARISON_REPORT_V2.md          # Agent Harness 对比分析
+│   └── test_agent_loop.py           # 核心引擎冒烟测试
+├── tests/
+│   ├── test_config_defaults.py
+│   ├── test_core_engine.py
+│   ├── test_harness_server.py
+│   ├── test_import_questions.py
+│   ├── test_interviewer_mvp_flow.py
+│   ├── test_memory_tools.py
+│   └── test_scheduler_agent.py
+├── .harness/
+│   ├── config/
+│   │   ├── harness.yaml.example     # 默认 SQLite 配置模板
+│   │   ├── harness.yaml             # 本地运行配置
+│   │   └── agents_config.yaml
+│   ├── db/
+│   │   ├── schema.sql               # SQLite schema
+│   │   └── schema_mysql.sql         # MySQL schema
+│   └── memory/                      # 用户画像和长期记忆文件
+├── 知识库/                          # Markdown 面试题库
+├── 学习记录/                        # Obsidian 风格学习记录目录
+├── AGENTS.md                        # 6 个 Agent 的架构设计
+├── PLAN.md                          # 最新实施计划
+├── SYSTEM_LEARNING_GUIDE.md         # 面向初学者的系统学习总览
+├── LEARNING_MAP.md                  # 思维导图和记忆卡片
+├── README.md                        # 项目首页和快速开始
+└── GIT_RULES.md                     # Git 提交规则
 ```
 
 ---
 
-## 🗄️ 数据库设计
+## 快速开始
 
-### 核心表结构（8张表）
-
-#### 1. learning_records - 学习记录表
-存储每次答题的详细记录，包括四维度评分、追问记录等。
-
-```sql
-CREATE TABLE learning_records (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    question_id VARCHAR(255) NOT NULL,
-    module VARCHAR(100) NOT NULL,
-    
-    -- 四维度评分（面试官 Agent）
-    score_accuracy DECIMAL(3,2),      -- 准确性 0-5
-    score_completeness DECIMAL(3,2),  -- 完整性 0-5
-    score_depth DECIMAL(3,2),         -- 深度 0-5
-    score_scenario DECIMAL(3,2),      -- 场景化 0-5
-    overall_score DECIMAL(3,2),       -- 综合得分
-    
-    -- 答题内容
-    user_answer TEXT,
-    weak_points JSON,                 -- 薄弱点
-    duration_seconds INT,
-    
-    -- 追问记录
-    follow_up_questions JSON,
-    follow_up_answers JSON,
-    
-    session_id VARCHAR(100)
-);
-```
-
-#### 2. question_metadata - 题目元数据表
-存储题目的掌握情况和复习调度信息。
-
-```sql
-CREATE TABLE question_metadata (
-    question_id VARCHAR(255) PRIMARY KEY,
-    file_path VARCHAR(500) NOT NULL,
-    module VARCHAR(100) NOT NULL,
-    
-    -- 掌握情况
-    mastery_level VARCHAR(10) DEFAULT '⚪',  -- 🟢🟡🔴⚪
-    total_attempts INT DEFAULT 0,
-    avg_score DECIMAL(3,2),
-    
-    -- 复习调度（SM-2 算法）
-    last_review DATE,
-    next_review DATE,
-    review_interval_days INT DEFAULT 1,
-    easiness_factor DECIMAL(3,2) DEFAULT 2.50,
-    repetitions INT DEFAULT 0,
-    
-    -- 知识关联
-    related_questions JSON,
-    keywords JSON
-);
-```
-
-#### 3. knowledge_relations - 知识关联表
-存储题目之间的关联关系（对比、递进、场景、前置）。
-
-#### 4. error_analysis - 错误分析表
-存储错题的深度分析结果。
-
-#### 5. sessions - 会话记录表
-存储每次学习会话的统计信息。
-
-#### 6. user_profile - 用户画像表
-存储用户偏好、学习模式等长期记忆。
-
-#### 7. review_queue - 复习队列表
-存储待复习题目的队列。
-
-#### 8. agent_interactions - Agent 协作日志
-记录 Agent 之间的通信。
-
----
-
-## ⚙️ 配置说明
-
-### 主配置文件：harness.yaml
-
-```yaml
-# LLM 配置
-llm:
-  provider: "openai"
-  base_url: "https://api.deepseek.com"
-  base_url_env: "DEEPSEEK_BASE_URL"
-  api_key: null
-  api_key_env: "DEEPSEEK_API_KEY"
-  model: "deepseek-chat"
-  model_env: "DEEPSEEK_MODEL"
-  temperature: 0.7
-  max_tokens: 2000
-
-# 数据库配置
-database:
-  type: "mysql"
-  host: "localhost"
-  port: 3306
-  database: "ai_interview"
-  user: "root"
-  password: "your_password"  # 请修改
-  charset: "utf8mb4"
-
-# 知识库配置
-knowledge_base:
-  default: "java_interview"           # 默认知识库
-  config_file: "knowledge_bases.yaml" # 知识库配置文件
-
-# 记忆系统配置
-memory:
-  short_term:
-    enabled: true
-    max_turns: 20
-  medium_term:
-    enabled: true
-    storage: "database"
-  long_term:
-    enabled: true
-    files:
-      - ".harness/memory/USER.md"
-      - ".harness/memory/LEARNING_PATTERN.md"
-
-# Agent 配置
-agents:
-  interviewer:
-    enabled: true
-    prompt_template: "agents/definitions/interviewer.md"
-  
-  scheduler:
-    enabled: true
-    algorithm: "sm2"
-    initial_interval: 1
-  
-  linker:
-    enabled: true
-    similarity_threshold: 0.7
-  
-  analyzer:
-    enabled: true
-  
-  supervisor:
-    enabled: true
-  
-  buddy:
-    enabled: true
-```
-
----
-
-## 🔧 开发规范
-
-### 代码风格
-
-- **Python**: PEP 8 规范
-- **注释**: 关键逻辑必须添加中文注释
-- **类型提示**: 使用 Type Hints
-
-### Git 工作流
-
-**单人开发模式**：
-
-- ✅ **直接在 main 分支开发** - 无需创建新分支
-- ✅ **每完成一个功能就提交** - 保持提交频率
-- ✅ **使用中文约定式提交** - `<type>(<scope>): <中文描述>`
-
-**提交示例**:
-```bash
-# 简单提交
-git add .
-git commit -m "feat(agent-loop): 实现 Agent Loop 核心循环"
-
-# 详细提交
-git commit -m "feat(agent-loop): 实现 TAOR 循环
-
-- 添加 Think → Act → Observe → Reflect 四步循环
-- 实现退出条件控制
-- 支持工具调用"
-```
-
-**详细规则**: 参考 `GIT_RULES.md`
-
-### 工具使用
-
-```python
-# 从标准 agents 包导入
-from agents.tools.question_tools import get_random_question, search_questions
-from agents.tools.memory_tools import add_learning_record, get_weak_modules
-from agents.roles.interviewer_agent import InterviewerAgent
-from agents.core.agent_loop import AgentLoop
-from agents.core.tool_registry import ToolRegistry
-
-```
-
-### 命名约定
-
-- **Agent 类**: `XxxAgent` （如 `InterviewerAgent`）
-- **工具函数**: `snake_case` （如 `get_random_question`）
-- **配置文件**: `kebab-case.yaml`
-- **数据库表**: `snake_case`
-
----
-
-## 🚀 快速开始
-
-### 1. 环境准备
+### 1. 安装依赖
 
 ```bash
-# 安装依赖
 pip install -r requirements.txt
-
-# 配置 MySQL（参考 MYSQL_SETUP.md）
-mysql -u root -p
-
-# 初始化数据库
-python scripts/init_database_mysql.py
 ```
 
-### 2. 导入题库
+### 2. 准备配置
 
 ```bash
-# 导入 Java 面试题（1346 道）到数据库
+cp .harness/config/harness.yaml.example .harness/config/harness.yaml
+```
+
+PowerShell 可用：
+
+```powershell
+Copy-Item .harness\config\harness.yaml.example .harness\config\harness.yaml
+```
+
+默认数据库类型是 `sqlite`。如果要调用真实 LLM，需要配置 DeepSeek API Key：
+
+```powershell
+$env:DEEPSEEK_API_KEY="你的 DeepSeek API Key"
+```
+
+### 3. 初始化数据库并导入题库
+
+```bash
+python scripts/init_database.py
 python scripts/import_questions.py --knowledge-base java_interview
 ```
 
-### 3. 启动服务
+### 4. 启动命令行面试
 
 ```bash
-# 命令行模式（推荐）
 python scripts/cli_interview.py
-
-# 完整流程演示
-python scripts/demo_full_flow.py
 ```
 
-### 4. 添加新知识库（可选）
+常用命令：
+
+```text
+help   查看帮助
+stats  查看学习统计
+quit   退出面试
+```
+
+### 5. 启动 API 服务
 
 ```bash
-# 1. 创建目录
-mkdir -p "知识库/Python面试"
+python scripts/harness_server.py
+```
 
-# 2. 添加题目（Markdown 格式）
-# 格式与 Java面试 题目相同
+常用接口：
 
-# 3. 编辑配置文件
-vim .harness/config/knowledge_bases.yaml
-# 将 python_interview 的 enabled 改为 true
-
-# 4. 导入题库
-python scripts/import_questions.py --knowledge-base python_interview
+```text
+GET    /api/health
+POST   /api/session/create
+GET    /api/session/{session_id}
+DELETE /api/session/{session_id}
+GET    /api/stats/overview
+GET    /api/stats/weak-modules
+GET    /api/stats/due-reviews
+GET    /api/questions/random
+GET    /api/questions/search
+GET    /api/questions/{question_id}
+WS     /ws/interview
 ```
 
 ---
 
-## 📊 当前进度
+## 测试和验证
 
-### ✅ Phase 0: 基础设施（已完成）
-- [x] 项目结构
-- [x] 配置文件
-- [x] 数据库 Schema（MySQL）
-- [x] 题库工具
-- [x] 记忆工具
-- [x] Agent 基类
-- [x] 文档体系
+当前自动化测试放在 `tests/`，不是 `scripts/`。
 
-### ⏳ Phase 0.5: Agent Loop 核心（进行中）
-- [ ] 工具注册系统（1.5h）
-- [ ] Agent Loop（2h）
-- [ ] 上下文管理（1h）
-
-### ⏳ Phase 1: 面试官 Agent（待实现）
-- [ ] 面试官 Agent 实现
-- [ ] 题库导入脚本
-- [ ] 命令行界面
-
-### 📅 Phase 2-7: 后续阶段
-参考 `PLAN.md`
-
----
-
-## 🎯 关键概念
-
-### Agent Loop (TAOR 闭环)
-
-核心执行引擎，实现 **Think → Act → Observe → Reflect** 循环。
-
-```python
-while not should_exit():
-    # 1. Think: 调用 LLM
-    response = await llm.create(messages, tools)
-    
-    # 2. Act: 执行工具调用
-    if response.tool_calls:
-        results = await execute_tools(response.tool_calls)
-        
-        # 3. Observe: 收集结果
-        add_tool_results(results)
-    else:
-        # 4. Reflect: 返回最终答案
-        return response.content
-```
-
-### SM-2 复习算法
-
-基于艾宾浩斯遗忘曲线的间隔重复算法。
-
-```python
-def calculate_next_review(easiness, repetitions, performance):
-    if performance < 3:
-        return 1  # 答错，1天后复习
-    elif repetitions == 0:
-        return 1  # 第一次，1天后
-    elif repetitions == 1:
-        return 6  # 第二次，6天后
-    else:
-        return int(interval * easiness)  # 后续按难度系数递增
-```
-
-### 四维度评分
-
-面试官 Agent 从 4 个维度评估答案：
-
-1. **准确性 (Accuracy)**: 概念是否正确
-2. **完整性 (Completeness)**: 是否覆盖关键点
-3. **深度 (Depth)**: 是否理解原理
-4. **场景化 (Scenario)**: 能否结合实际应用
-
----
-
-## 🐛 常见问题
-
-### 数据库连接失败
-
-**问题**: `Can't connect to MySQL server`
-
-**解决**:
 ```bash
-# 检查 MySQL 是否启动
-net start MySQL  # Windows
-sudo systemctl start mysql  # Linux
-
-# 检查配置文件中的密码是否正确
-# 编辑 .harness/config/harness.yaml
+python -m pytest tests -q
+python -m compileall agents scripts tests
+python scripts/test_agent_loop.py
 ```
 
-### 题库工具测试失败
+这些验证分别覆盖：
 
-**问题**: `No module named '.harness'`
-
-**解决**:
-```bash
-# 确保在项目根目录运行
-cd D:\ajie\study\AI-Knowledge
-python -m agents.tools.question_tools
-```
-
-### 中文编码问题
-
-**问题**: Windows 下中文乱码
-
-**解决**: 所有 Python 文件开头已添加编码处理
-```python
-import sys
-if sys.platform == 'win32':
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
-```
+- `pytest`：业务和 API 自动化测试。
+- `compileall`：检查 Python 文件语法能否编译。
+- `test_agent_loop.py`：核心 Agent Loop 冒烟测试。
 
 ---
 
-## 📚 参考文档
+## 当前开发优先级
 
-- **实施计划**: `PLAN.md` - 完整的开发路线图
-- **Agent 架构**: `AGENTS.md` - 6 个 Agent 的详细设计
-- **对比分析**: `COMPARISON_REPORT_V2.md` - 与生产级 Agent Harness 的对比
-- **MySQL 配置**: `MYSQL_SETUP.md` - 数据库配置指南
-- **理论手册**: `Agent-Harness-Develop-Book/README.md` - Agent Harness 理论基础
+1. **补齐 SupervisorAgent**：生成每日/周学习报告，先输出 Markdown。
+2. **补齐 AnalyzerAgent**：根据低分记录分析错误类型和补救建议。
+3. **补齐 LinkerAgent**：先做轻量关键词/模块关联，再考虑 TF-IDF。
+4. **补齐 BuddyAgent**：实现提示、通俗解释和学习陪伴能力。
+5. **实现多 Agent 编排器**：让 Interviewer、Scheduler、Analyzer、Linker、Supervisor 能串起来。
+6. **增强 WebSocket**：从协议骨架升级到真实面试流式交互。
+7. **开发 Web UI 和 Obsidian 导出**：在 API 稳定后推进。
 
 ---
 
-## 🤝 贡献指南
+## 关键概念速记
 
-### 开发流程
+### TAOR 循环
 
-1. 阅读 `PLAN.md` 了解当前阶段
-2. 选择一个待实现的模块
-3. 参考 `AGENTS.md` 了解设计
-4. 编写代码 + 单元测试
-5. 更新文档
-
-### 测试规范
-
-```python
-# 所有新功能必须包含测试
-# 测试文件放在 scripts/ 目录
-# 命名规范: test_xxx.py
-
-# 示例
-async def test_agent_loop():
-    agent = Agent('test')
-    loop = AgentLoop(agent, max_rounds=5)
-    result = await loop.run("测试输入")
-    assert result is not None
+```text
+Think    调用 LLM，让模型判断下一步
+Act      如果 LLM 返回 tool_calls，就准备执行工具
+Observe  ToolRegistry 执行 Python 工具，并把结果放回消息历史
+Reflect  LLM 基于工具结果继续思考，或输出最终回复
 ```
 
+### Java 类比
+
+```text
+scripts/cli_interview.py          -> Controller / main 方法
+agents/roles/interviewer_agent.py -> Service
+agents/core/agent_loop.py         -> 框架执行循环
+agents/core/tool_registry.py      -> Map<String, Function>
+agents/tools/memory_tools.py      -> Repository / DAO
+.harness/db/learning.db           -> 数据库
+```
+
+### SM-2 复习
+
+答得差就缩短复习间隔，答得好就拉长间隔。当前具体计算在 `agents/tools/memory_tools.py`，`SchedulerAgent` 负责调用和组织结果。
+
 ---
 
-## 📝 更新日志
+## 参考文档
+
+- `README.md`：项目首页和快速开始。
+- `PLAN.md`：最新阶段计划和下一步开发路线。
+- `AGENTS.md`：6 个 Agent 的职责和协作设计。
+- `SYSTEM_LEARNING_GUIDE.md`：面向初学者的系统学习总览。
+- `LEARNING_MAP.md`：思维导图和记忆卡片。
+- `COMPARISON_REPORT_V2.md`：与目标 Agent Harness 能力的差距分析。
+- `MYSQL_SETUP.md`：可选 MySQL 配置。
+- `GIT_RULES.md`：Git 提交格式和流程。
+
+---
+
+## 更新日志
+
+### v1.1.0 (2026-06-28)
+
+- 同步当前真实状态：SQLite 默认、FastAPI 基础服务、WebSocket 协议骨架、SchedulerAgent 部分实现。
+- 更新测试位置和测试清单。
+- 明确后续优先级：Supervisor、Analyzer、Linker、Buddy、多 Agent 编排、WebSocket 增强。
 
 ### v1.0.0 (2026-06-24)
-- 初始版本
-- 完成基础设施搭建
-- 设计 6 个 Agent 架构
-- 完成数据库 Schema 设计
-- 从 SQLite 迁移到 MySQL
-- 生成完整文档体系
 
----
-
-## 📞 联系方式
-
-**项目维护者**: AI 面试陪练系统开发团队  
-**最后更新**: 2026-06-24
-
----
-
-## 🎉 致谢
-
-本项目基于以下开源项目和理论：
-
-- **Agent Harness 理论**: Agent-Harness-Develop-Book
-- **Claude Code**: Anthropic 的生产级 Agent 实现
-- **OpenCode**: 开源编程 Agent
-- **SuperMemo SM-2**: 间隔重复算法
-- **TF-IDF**: 文本相似度计算
-
----
-
-**祝你面试顺利！💪**
+- 初始版本。
+- 完成基础设施规划和 6 个 Agent 架构设计。
