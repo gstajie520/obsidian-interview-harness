@@ -88,6 +88,20 @@ def test_health_endpoint(api_client: TestClient) -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_ui_entry_redirect(api_client: TestClient) -> None:
+    response = api_client.get("/ui", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/ui/"
+
+
+def test_ui_index_served(api_client: TestClient) -> None:
+    response = api_client.get("/ui/")
+    assert response.status_code == 200
+    text = response.text
+    assert "<title>AI 面试陪练 - Interview UI</title>" in text
+    assert "AI 面试陪练 - Interview UI" in text
+
+
 def test_session_lifecycle(api_client: TestClient) -> None:
     created = api_client.post(
         "/api/session/create",

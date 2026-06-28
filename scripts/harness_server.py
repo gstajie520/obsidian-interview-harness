@@ -17,10 +17,13 @@ import datetime
 import uuid
 import re
 import json
+from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from agents.tools import memory_tools, question_tools
@@ -63,6 +66,11 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         """健康检查：给前端、curl 或部署平台确认服务已启动。"""
         return {"status": "ok"}
+
+    @app.get("/ui")
+    def ui_redirect() -> RedirectResponse:
+        """浏览器访问 /ui 时重定向到静态首页。"""
+        return RedirectResponse(url="/ui/")
 
     @app.post("/api/session/create")
     def create_session(request: CreateSessionRequest) -> dict[str, str]:
@@ -193,6 +201,13 @@ def create_app() -> FastAPI:
                 await _handle_submit_answer_message(websocket, message)
         except WebSocketDisconnect:
             return
+
+    ui_root = Path(__file__).resolve().parent.parent / "web_ui"
+    app.mount(
+        "/ui",
+        StaticFiles(directory=str(ui_root), html=True),
+        name="ui",
+    )
 
     return app
 

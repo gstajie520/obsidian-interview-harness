@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 面试陪练 - Interview UI</title>
+  <style>
+    :root {
+      --bg: #071125;
+      --card: #101b36;
+      --text: #e9edf7;
+      --muted: #94a3b8;
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --line: #22314f;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 10%, #11224a, var(--bg) 52%);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1fr;
+    }
+    .panel {
+      background: rgba(16, 27, 54, 0.8);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      backdrop-filter: blur(3px);
+    }
+    h1,
+    h2,
+    h3 {
+      margin: 0 0 10px;
+      letter-spacing: 0.4px;
+    }
+    .row {
+      display: grid;
+      gap: 10px;
+    }
+    .row.grid2 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    button,
+    input,
+    textarea {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b1530;
+      color: var(--text);
+      padding: 10px 12px;
+    }
+    button {
+      cursor: pointer;
+      border-color: #2d4a8a;
+    }
+    button:hover {
+      border-color: #4a6cb4;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+      background: #1e2e57;
+      color: #c7d2fe;
+    }
+    .tag.ok {
+      background: #114e3e;
+      color: #a7f3d0;
+    }
+    .tag.warn {
+      background: #543a06;
+      color: #fde68a;
+    }
+    .tag.bad {
+      background: #501a1a;
+      color: #fecaca;
+    }
+    .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #050d1f;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      max-height: 300px;
+      overflow: auto;
+    }
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+    .item {
+      border-left: 3px solid #2f467f;
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: #091633;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 8px 0;
+    }
+    .status {
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="panel">
+      <h1>AI 面试陪练 - Interview Web UI</h1>
+      <p class="small">基于 API + WebSocket 的最小联调页。先创建会话，再获取题目，提交答案，查看实时闭环结果。</p>
+    </section>
+
+    <section class="panel">
+      <div class="row grid2">
+        <div class="row">
+          <label>会话 ID</label>
+          <input id="sessionId" placeholder="留空自动创建" />
+        </div>
+        <div class="row">
+          <label>模块（可选）</label>
+          <input id="moduleInput" placeholder="如 Java基础" />
+        </div>
+      </div>
+      <div class="btns">
+        <button id="createSessionBtn">新建会话</button>
+        <button id="loadQuestionBtn">抽取题目</button>
+        <button id="refreshRunsBtn">刷新闭环记录</button>
+        <label><input type="checkbox" id="includeReport" checked />返回周报</label>
+      </div>
+      <div class="small">
+        WS: <span id="wsState" class="tag warn">未连接</span>
+        <span id="sessionStatus" class="status"></span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>当前题目</h2>
+      <div id="questionTitle" class="tag">等待加载...</div>
+      <div id="questionMeta" class="small"></div>
+      <hr />
+      <div class="row">
+        <label>回答内容</label>
+        <textarea id="answerInput" placeholder="在此输入你的作答..."></textarea>
+      </div>
+      <div class="btns">
+        <button id="submitAnswerBtn" disabled>提交答案</button>
+        <button id="clearLogBtn">清空日志</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>会话消息</h2>
+      <div id="eventLog" class="mono"></div>
+    </section>
+
+    <section class="panel">
+      <h2>闭环结果（本次）</h2>
+      <div id="lastResult" class="mono">无</div>
+    </section>
+
+    <section class="panel">
+      <h2>历史闭环（按会话/题目）</h2>
+      <div id="orchestrationList" class="list"></div>
+    </section>
+  </div>
+
+  <script>
+    const els = {
+      sessionInput: document.getElementById("sessionId"),
+      moduleInput: document.getElementById("moduleInput"),
+      createSessionBtn: document.getElementById("createSessionBtn"),
+      loadQuestionBtn: document.getElementById("loadQuestionBtn"),
+      refreshRunsBtn: document.getElementById("refreshRunsBtn"),
+      includeReport: document.getElementById("includeReport"),
+      wsState: document.getElementById("wsState"),
+      sessionStatus: document.getElementById("sessionStatus"),
+      questionTitle: document.getElementById("questionTitle"),
+      questionMeta: document.getElementById("questionMeta"),
+      answerInput: document.getElementById("answerInput"),
+      submitAnswerBtn: document.getElementById("submitAnswerBtn"),
+      clearLogBtn: document.getElementById("clearLogBtn"),
+      eventLog: document.getElementById("eventLog"),
+      lastResult: document.getElementById("lastResult"),
+      orchestrationList: document.getElementById("orchestrationList"),
+    };
+
+    let sessionId = "";
+    let currentQuestion = null;
+    let socket = null;
+
+    const baseUrl = "";
+    const api = (path) => `${baseUrl}${path}`;
+    const wsUrl = () => {
+      const loc = window.location;
+      const proto = loc.protocol === "https:" ? "wss" : "ws";
+      return `${proto}://${loc.host}/ws/interview`;
+    };
+
+    function setStatus(wsText, level) {
+      els.wsState.textContent = wsText;
+      els.wsState.className = "tag " + (level || "warn");
+    }
+
+    function addLog(line) {
+      const now = new Date().toLocaleTimeString();
+      els.eventLog.textContent += `[${now}] ${line}\n`;
+      els.eventLog.scrollTop = els.eventLog.scrollHeight;
+    }
+
+    function setButtons(enabled) {
+      els.submitAnswerBtn.disabled = !enabled;
+      els.loadQuestionBtn.disabled = !enabled;
+      els.refreshRunsBtn.disabled = !enabled;
+    }
+
+    async function request(url, options = {}) {
+      const resp = await fetch(url, options);
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${text}`);
+      }
+      return resp.json();
+    }
+
+    async function createSession() {
+      const created = await request("/api/session/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ primary_agent: "interviewer" }),
+      });
+      sessionId = created.session_id;
+      els.sessionInput.value = sessionId;
+      els.sessionStatus.textContent = `会话已创建：${sessionId}`;
+      refreshRuns();
+      addLog(`新建会话：${sessionId}`);
+      return sessionId;
+    }
+
+    async function loadQuestion() {
+      const module = els.moduleInput.value.trim();
+      const path = module ? `/api/questions/random?module=${encodeURIComponent(module)}` : "/api/questions/random";
+      const q = await request(path);
+      currentQuestion = q;
+      els.questionTitle.textContent = q.title || q.question_id || "未命名题目";
+      els.questionMeta.textContent = `question_id=${q.question_id} | module=${q.module || "未知"}`;
+      addLog(`已加载题目：${q.question_id}`);
+      els.submitAnswerBtn.disabled = false;
+      refreshRuns();
+      return q;
+    }
+
+    function setLastResult(payload) {
+      els.lastResult.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    function scoreTag(value) {
+      if (value >= 4) return "ok";
+      if (value >= 2.8) return "warn";
+      return "bad";
+    }
+
+    function renderRuns() {
+      const qid = currentQuestion ? currentQuestion.question_id : "";
+      const sid = els.sessionInput.value.trim();
+      const params = new URLSearchParams();
+      if (sid) params.set("session_id", sid);
+      if (qid) params.set("question_id", qid);
+      params.set("limit", "20");
+      request(`/api/orchestration/runs?${params.toString()}`)
+        .then((body) => {
+          els.orchestrationList.textContent = "";
+          const items = body.runs || [];
+          if (!items.length) {
+            els.orchestrationList.innerHTML = `<div class='item'>暂无记录</div>`;
+            return;
+          }
+          for (const item of items) {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.innerHTML = `
+              <div><span class="tag">run#${item.id}</span> ${item.question_id}</div>
+              <div class="small">session=${item.session_id || "-"}, report=${item.report_type || "-"}</div>
+              <div class="small">payload=${JSON.stringify(item.payload)}</div>
+            `;
+            els.orchestrationList.appendChild(div);
+          }
+        })
+        .catch((err) => {
+          addLog(`刷新闭环失败：${err.message}`);
+        });
+    }
+
+    function ensureSession() {
+      const userSession = els.sessionInput.value.trim();
+      if (userSession) {
+        sessionId = userSession;
+        return sessionId;
+      }
+      return sessionId;
+    }
+
+    function openWebSocket() {
+      if (socket) {
+        socket.close();
+      }
+      socket = new WebSocket(wsUrl());
+      socket.onopen = () => {
+        setStatus("已连接", "ok");
+        addLog("WebSocket 已连接");
+        setButtons(true);
+      };
+      socket.onclose = () => {
+        setStatus("已关闭", "bad");
+        addLog("WebSocket 已断开");
+        setButtons(true);
+      };
+      socket.onerror = () => {
+        setStatus("错误", "bad");
+        addLog("WebSocket 错误");
+        setButtons(true);
+      };
+      socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === "connection_open") {
+          addLog("服务端连接成功");
+          return;
+        }
+        if (message.type === "evaluation_chunk") {
+          addLog(`进度: ${message.content}`);
+          const line = `评估中：${message.content}`;
+          els.lastResult.textContent = (els.lastResult.textContent || "").replace(/.*评估中：.*\n?/g, "") + line + "\n";
+          return;
+        }
+        if (message.type === "evaluation_complete") {
+          addLog(`完成: ${message.message || "done"}`);
+          if (message.status === "success") {
+            const lines = [
+              `question_id: ${message.question_id}`,
+              `score总分: ${message.overall_score?.toFixed?.(2) ?? message.overall_score}`,
+              `answers: ${message.answer_length}`,
+              `record_id: ${message.record_id}`,
+            ];
+            const score = message.scores || {};
+            const scoreHtml = Object.entries(score)
+              .map(([k, v]) => `<span class="tag ${scoreTag(v)}">${k}: ${v}</span>`)
+              .join("");
+            const orchestration = message.orchestration || {};
+            const oSummary = orchestration.recommendation || {};
+            setLastResult({
+              status: message.status,
+              scores: message.scores,
+              weak_points: message.weak_points,
+              orchestration: {
+                run_id: orchestration.run_id,
+                report_type: oSummary.report_type,
+                events: orchestration.events,
+                analysis: orchestration.analysis,
+                schedule: orchestration.schedule,
+                relations: orchestration.relations,
+                encouragement: orchestration.encouragement,
+              },
+            });
+            addLog(`最终: ${lines.join(", ")}`);
+            addLog(`评分标签 ${scoreHtml}`);
+            refreshRuns();
+          } else {
+            setLastResult(message);
+          }
+          return;
+        }
+        if (message.type === "error") {
+          addLog(`错误: ${message.message}`);
+          return;
+        }
+      };
+    }
+
+    async function submitAnswer() {
+      if (!currentQuestion || !currentQuestion.question_id) {
+        addLog("请先加载题目");
+        return;
+      }
+      const answer = els.answerInput.value.trim();
+      if (!answer) {
+        addLog("请先输入答案");
+        return;
+      }
+      const sid = ensureSession() || (await createSession());
+      const payload = {
+        type: "submit_answer",
+        question_id: currentQuestion.question_id,
+        answer,
+        session_id: sid,
+        include_report: Boolean(els.includeReport.checked),
+      };
+      socket.send(JSON.stringify(payload));
+      addLog(`已提交答案: ${currentQuestion.question_id}`);
+      setLastResult("等待服务端返回...");
+    }
+
+    function refreshRuns() {
+      renderRuns();
+    }
+
+    function clearLog() {
+      els.eventLog.textContent = "";
+      els.lastResult.textContent = "无";
+      els.orchestrationList.textContent = "";
+    }
+
+    function bind() {
+      setButtons(false);
+      els.createSessionBtn.addEventListener("click", createSession);
+      els.loadQuestionBtn.addEventListener("click", loadQuestion);
+      els.refreshRunsBtn.addEventListener("click", refreshRuns);
+      els.submitAnswerBtn.addEventListener("click", submitAnswer);
+      els.clearLogBtn.addEventListener("click", clearLog);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      bind();
+      openWebSocket();
+      if (els.sessionInput.value.trim()) {
+        sessionId = els.sessionInput.value.trim();
+      }
+      els.sessionStatus.textContent = "准备就绪";
+      setStatus("未连接", "warn");
+    });
+  </script>
+</body>
+</html>
