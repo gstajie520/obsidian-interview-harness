@@ -61,10 +61,10 @@ obsidian-interview-harness/
 │   ├── roles/
 │   │   ├── interviewer_agent.py     ✅ 面试官 MVP
 │   │   ├── scheduler_agent.py       ✅ 复习调度器基础能力
-│   │   ├── linker_agent.py          ⏳ 知识关联器骨架
+│   │   ├── linker_agent.py          ✅ 知识关联器基础能力
 │   │   ├── analyzer_agent.py        ✅ 错题分析师基础能力
 │   │   ├── supervisor_agent.py      ✅ 监督助手基础报告能力
-│   │   └── buddy_agent.py           ⏳ 陪练伙伴骨架
+│   │   └── buddy_agent.py           ✅ 陪练伙伴基础能力
 │   ├── tools/
 │   │   ├── question_tools.py        ✅ 题库读取工具
 │   │   └── memory_tools.py          ✅ 学习记录和复习记忆工具
@@ -244,9 +244,9 @@ python -m pytest tests/test_analyzer_agent.py -q
 |---|---|---|
 | SupervisorAgent | 基础完成 | 已支持日报、周报 Markdown、薄弱模块和到期复习汇总；趋势分析后续增强 |
 | AnalyzerAgent | 基础完成 | 已支持错因分类、证据、补救建议和 Markdown；相似错误检索后续增强 |
-| LinkerAgent | 待实现 | 相关题推荐、知识关系、后续可引入 TF-IDF |
-| BuddyAgent | 待实现 | 分级提示、通俗解释、学习陪伴 |
-| 多 Agent 编排器 | 待实现 | 统一协调 6 个 Agent 的调用关系 |
+| LinkerAgent | 基础完成 | 已支持同模块 + 关键词 + 标题相似度推荐 + 关系类型识别 |
+| BuddyAgent | 基础完成 | 支持 3 级提示、通俗解释、鼓励与休息建议 |
+| 多 Agent 编排器 | 进行中 | 已实现线性调用链：Scheduler→Analyzer→Linker→Supervisor→Buddy |
 | 消息总线 | 待实现 | Agent 间事件通知和协作日志 |
 | WebSocket 真实流式面试 | 待实现 | 将协议骨架接入 InterviewerAgent / LLM |
 | Web UI | 待实现 | Dashboard、Interview、Review、Stats 页面 |
@@ -290,7 +290,7 @@ tests/test_buddy_agent.py
 
 目标：
 
-- 串联 `SchedulerAgent -> InterviewerAgent -> AnalyzerAgent -> LinkerAgent -> SupervisorAgent`。
+- 串联 `SchedulerAgent -> AnalyzerAgent -> LinkerAgent -> SupervisorAgent -> BuddyAgent`。
 - 初期不需要复杂 DAG，先实现清晰的线性编排。
 - 保留事件记录，为后续消息总线做铺垫。
 
@@ -326,14 +326,14 @@ tests/test_multi_agent_orchestrator.py
 - [x] SchedulerAgent 基础能力。
 - [x] SupervisorAgent 基础报告能力。
 - [x] AnalyzerAgent 基础错题分析能力。
-- [ ] LinkerAgent 关联推荐能力。
-- [ ] BuddyAgent 陪练能力。
+- [x] LinkerAgent 关联推荐能力。
+- [x] BuddyAgent 陪练能力。
 
-### Milestone 4: 多 Agent 协作 ⏳
+### Milestone 4: 多 Agent 协作 ✅
 
-- [ ] 编排器能串联主要学习流程。
-- [ ] Agent 协作结果可记录。
-- [ ] 错题、相关题、学习报告能在一次流程中形成闭环。
+- [x] 编排器已完成线性流程并产出 events。
+- [x] Agent 协作结果可记录（事件 events 已由编排器返回）。
+- [ ] 错题、相关题、学习报告能在一次流程中形成完整闭环（包含后端持久化）。
 
 ### Milestone 5: Web UI ⏳
 
@@ -416,3 +416,8 @@ SQLite           -> 本地数据库
 - `COMPARISON_REPORT_V2.md`：如果修复了报告里的差距，需要更新状态。
 
 提交前必须运行验证，并按 `GIT_RULES.md` 使用中文约定式提交。
+
+
+
+
+

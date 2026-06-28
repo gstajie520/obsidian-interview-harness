@@ -72,8 +72,8 @@ git config core.hooksPath .githooks
 | 复习调度器 Agent | 基础实现 | 可生成每日复习清单，并更新题目下次复习时间 |
 | 监督助手 Agent | 基础实现 | 可生成日报、周报 Markdown，并汇总薄弱模块和到期复习 |
 | 错题分析师 Agent | 基础实现 | 可识别概念混淆、细节遗漏、场景不足、前置知识缺失，并输出补救建议 |
-| 其他角色 Agent | 骨架/规划中 | `LinkerAgent`、`BuddyAgent` 待实现业务能力 |
-| 多 Agent 编排 | 未实现 | 还没有统一 orchestrator 和消息总线 |
+| 其他角色 Agent | 基础实现/进行中 | `LinkerAgent`、`BuddyAgent` 已具备基础能力，继续补齐关联质量 |
+| 多 Agent 编排 | 进行中 | 已有多 Agent 编排线性路径，消息总线未实现 |
 | Web UI | 未实现 | API 已具备前端联调基础 |
 | Obsidian 自动导出 | 未实现 | 现阶段仍以数据库和 Markdown 知识库为主 |
 
@@ -318,3 +318,4 @@ agents/tools/memory_tools.py      -> Repository / DAO
 
 - 初始版本。
 - 完成基础设施规划和 6 个 Agent 架构设计。
+
