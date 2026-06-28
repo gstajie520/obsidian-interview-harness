@@ -3,7 +3,7 @@
 > **文档版本**: 1.1.0  
 > **创建日期**: 2026-06-24  
 > **最近更新**: 2026-06-28  
-> **当前重点**: 在已完成 CLI、API 基础能力和复习调度器后，继续补齐其余 Agent 和多 Agent 编排。
+> **当前重点**: 在已完成 CLI、API、复习调度器、监督助手和错题分析基础能力后，继续补齐 Linker / Buddy 和多 Agent 编排。
 
 ---
 
@@ -62,7 +62,7 @@ obsidian-interview-harness/
 │   │   ├── interviewer_agent.py     ✅ 面试官 MVP
 │   │   ├── scheduler_agent.py       ✅ 复习调度器基础能力
 │   │   ├── linker_agent.py          ⏳ 知识关联器骨架
-│   │   ├── analyzer_agent.py        ⏳ 错题分析师骨架
+│   │   ├── analyzer_agent.py        ✅ 错题分析师基础能力
 │   │   ├── supervisor_agent.py      ✅ 监督助手基础报告能力
 │   │   └── buddy_agent.py           ⏳ 陪练伙伴骨架
 │   ├── tools/
@@ -84,7 +84,9 @@ obsidian-interview-harness/
 │   ├── test_import_questions.py     ✅ 导入脚本测试
 │   ├── test_interviewer_mvp_flow.py ✅ 面试闭环测试
 │   ├── test_memory_tools.py         ✅ 记忆工具测试
-│   └── test_scheduler_agent.py      ✅ 复习调度器测试
+│   ├── test_scheduler_agent.py      ✅ 复习调度器测试
+│   ├── test_supervisor_agent.py     ✅ 监督助手测试
+│   └── test_analyzer_agent.py       ✅ 错题分析师测试
 ├── .harness/
 │   ├── config/
 │   │   ├── harness.yaml.example     ✅ 默认 SQLite 配置模板
@@ -203,6 +205,37 @@ python -m pytest tests/test_harness_server.py -q
 python -m pytest tests/test_scheduler_agent.py -q
 ```
 
+### Phase 3.2: 监督助手 Agent 基础报告能力 ✅
+
+已完成：
+
+- `SupervisorAgent.generate_daily_report(limit=5)`。
+- `SupervisorAgent.generate_weekly_report(limit=5)`。
+- `SupervisorAgent.process(input_data)` action 路由。
+- 日报、周报 Markdown、薄弱模块和到期复习汇总测试。
+
+验证方式：
+
+```bash
+python -m pytest tests/test_supervisor_agent.py -q
+```
+
+### Phase 3.3: 错题分析师 Agent 基础能力 ✅
+
+已完成：
+
+- `AnalyzerAgent.analyze_wrong_answer(record)`。
+- 支持四类错因：概念混淆、细节遗漏、场景不足、前置知识缺失。
+- 支持根据 `weak_points` 关键词优先判断，缺少文本时按四维评分最低项兜底。
+- 输出证据、补救建议、下一步动作和可导出 Markdown。
+- `AnalyzerAgent.process(input_data)` action 路由。
+
+验证方式：
+
+```bash
+python -m pytest tests/test_analyzer_agent.py -q
+```
+
 ---
 
 ## 5. 当前未完成项
@@ -210,7 +243,7 @@ python -m pytest tests/test_scheduler_agent.py -q
 | 模块 | 状态 | 说明 |
 |---|---|---|
 | SupervisorAgent | 基础完成 | 已支持日报、周报 Markdown、薄弱模块和到期复习汇总；趋势分析后续增强 |
-| AnalyzerAgent | 待实现 | 错题原因分类、相似错误、补救建议 |
+| AnalyzerAgent | 基础完成 | 已支持错因分类、证据、补救建议和 Markdown；相似错误检索后续增强 |
 | LinkerAgent | 待实现 | 相关题推荐、知识关系、后续可引入 TF-IDF |
 | BuddyAgent | 待实现 | 分级提示、通俗解释、学习陪伴 |
 | 多 Agent 编排器 | 待实现 | 统一协调 6 个 Agent 的调用关系 |
@@ -223,25 +256,7 @@ python -m pytest tests/test_scheduler_agent.py -q
 
 ## 6. 下一步开发计划
 
-### Step 1: AnalyzerAgent 错题分析
-
-优先级最高，因为 SupervisorAgent 已能生成基础报告，下一步需要把低分记录转成可执行的补救建议。
-
-目标：
-
-- 根据低分学习记录识别错误类型。
-- 支持四类错误：概念混淆、细节遗漏、场景不足、前置知识缺失。
-- 生成补救建议。
-- 后续可和 LinkerAgent 结合推荐补救题。
-
-建议文件：
-
-```text
-agents/roles/analyzer_agent.py
-tests/test_analyzer_agent.py
-```
-
-### Step 2: LinkerAgent 知识关联
+### Step 1: LinkerAgent 知识关联
 
 目标：
 
@@ -256,7 +271,7 @@ agents/roles/linker_agent.py
 tests/test_linker_agent.py
 ```
 
-### Step 3: BuddyAgent 陪练伙伴
+### Step 2: BuddyAgent 陪练伙伴
 
 目标：
 
@@ -271,7 +286,7 @@ agents/roles/buddy_agent.py
 tests/test_buddy_agent.py
 ```
 
-### Step 4: 多 Agent 编排器
+### Step 3: 多 Agent 编排器
 
 目标：
 
@@ -310,7 +325,7 @@ tests/test_multi_agent_orchestrator.py
 - [x] InterviewerAgent MVP。
 - [x] SchedulerAgent 基础能力。
 - [x] SupervisorAgent 基础报告能力。
-- [ ] AnalyzerAgent 错题分析能力。
+- [x] AnalyzerAgent 基础错题分析能力。
 - [ ] LinkerAgent 关联推荐能力。
 - [ ] BuddyAgent 陪练能力。
 

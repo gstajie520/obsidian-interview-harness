@@ -378,6 +378,8 @@ async def execute_tools_parallel(self, tool_calls):
 4. **BuddyAgent**：提供分级提示和通俗解释。
 5. **多 Agent 编排器**：把复习、面试、分析、推荐、报告串成闭环。
 
+当前同步：SupervisorAgent 和 AnalyzerAgent 已完成基础能力。下一步应优先补齐 LinkerAgent，再补 BuddyAgent，并在此基础上推进多 Agent 编排器。
+
 ---
 
 ## 📁 文件结构（精简版）
@@ -418,7 +420,8 @@ agents/core/
 - ✅ 数据库、记忆、配置 → 已可用
 - ✅ Agent Loop、工具系统、上下文管理 → 已完成
 - ✅ 重试机制、并行工具执行 → 已完成
-- ⏳ Supervisor / Analyzer / Linker / Buddy → 待补齐业务能力
+- ✅ Supervisor / Analyzer → 基础业务能力已完成
+- ⏳ Linker / Buddy → 待补齐业务能力
 - ⏳ WebSocket 真实流式评分、Web UI、Obsidian 导出 → 后续增强
 
 ### 关键差距

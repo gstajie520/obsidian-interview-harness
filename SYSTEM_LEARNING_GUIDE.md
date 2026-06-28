@@ -281,7 +281,7 @@ agents/roles/
 ├── interviewer_agent.py  面试官，目前最完整
 ├── scheduler_agent.py    复习调度器，基础能力已实现
 ├── linker_agent.py       知识关联器，骨架
-├── analyzer_agent.py     错题分析师，骨架
+├── analyzer_agent.py     错题分析师，基础能力已实现
 ├── supervisor_agent.py   监督助手，基础报告能力已实现
 └── buddy_agent.py        陪练伙伴，骨架
 ```
@@ -429,6 +429,9 @@ tests/test_scheduler_agent.py
 
 tests/test_supervisor_agent.py
   学监督助手怎么把统计、薄弱模块和复习清单整理成 Markdown 报告
+
+tests/test_analyzer_agent.py
+  学错题分析师怎么根据 weak_points 和四维评分判断错因、生成补救建议
 ```
 
 推荐阅读方法：
