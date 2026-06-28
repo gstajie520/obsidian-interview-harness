@@ -150,16 +150,62 @@ def test_interview_websocket_submit_answer_protocol(
         )
 
         chunk = websocket.receive_json()
+        chunk2 = websocket.receive_json()
+        chunk3 = websocket.receive_json()
         complete = websocket.receive_json()
 
         assert chunk == {
             "type": "evaluation_chunk",
             "content": "已收到答案，正在进入评估流程...",
         }
+        assert chunk2 == {
+            "type": "evaluation_chunk",
+            "content": "正在计算得分与弱点...",
+        }
+        assert chunk3 == {
+            "type": "evaluation_chunk",
+            "content": "已完成记录保存，正在生成闭环反馈...",
+        }
         assert complete["type"] == "evaluation_complete"
         assert complete["question_id"] == "hashmap-basic"
-        assert complete["status"] == "received"
+        assert complete["status"] == "success"
         assert complete["answer_length"] == 10
+        assert "scores" in complete
+        assert complete["orchestration"]["events"] >= 5
+
+
+def test_interview_websocket_submit_answer_with_invalid_payload(api_client: TestClient) -> None:
+    with api_client.websocket_connect("/ws/interview") as websocket:
+        websocket.receive_json()
+        websocket.send_json(
+            {
+                "type": "submit_answer",
+                "question_id": "",
+                "answer": "any",
+            }
+        )
+        complete = websocket.receive_json()
+
+        assert complete["type"] == "evaluation_complete"
+        assert complete["status"] == "error"
+        assert "缺少 question_id" in complete["message"]
+
+
+def test_interview_websocket_submit_unknown_question(api_client: TestClient) -> None:
+    with api_client.websocket_connect("/ws/interview") as websocket:
+        websocket.receive_json()
+        websocket.send_json(
+            {
+                "type": "submit_answer",
+                "question_id": "unknown-question-id",
+                "answer": "any answer",
+            }
+        )
+        complete = websocket.receive_json()
+
+        assert complete["type"] == "evaluation_complete"
+        assert complete["status"] == "error"
+        assert "未找到题目" in complete["message"]
 
 
 def test_interview_websocket_reports_unknown_message_type(

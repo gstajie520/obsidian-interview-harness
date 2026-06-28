@@ -248,7 +248,7 @@ python -m pytest tests/test_analyzer_agent.py -q
 | BuddyAgent | 基础完成 | 支持 3 级提示、通俗解释、鼓励与休息建议 |
 | 多 Agent 编排器 | ✅ 已完成 | 已实现线性调用链：Scheduler→Analyzer→Linker→Supervisor→Buddy，并支持闭环持久化 |
 | 消息总线 | ✅ 已完成 | 引入最小 MessageBus，编排器可发布/订阅事件并持久化 agent_interactions |
-| WebSocket 真实流式面试 | 待实现 | 将协议骨架接入 InterviewerAgent / LLM |
+| WebSocket 真实流式面试 | 进行中 | 已实现答案提交评分闭环（启发式评分 + 记录保存 + 编排反馈） |
 | Web UI | 待实现 | Dashboard、Interview、Review、Stats 页面 |
 | Obsidian 导出 | 待实现 | 学习记录、周报、错题本自动生成 Markdown |
 

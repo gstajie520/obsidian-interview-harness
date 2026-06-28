@@ -143,7 +143,7 @@ POST /api/session/create
 WS   /ws/interview
 ```
 
-`/ws/interview` 当前提供稳定的 WebSocket 消息协议骨架，方便前端先联调实时消息；真实 LLM 流式评分会在后续阶段接入。
+`/ws/interview` 已实现提交答案到评分闭环的最小实时流程：返回阶段化 `evaluation_chunk` 及最终 `evaluation_complete`，并落库学习记录与多 Agent 编排结果。真实 LLM 流式打分后续可继续增强。
 
 ## 项目结构
 
