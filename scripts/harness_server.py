@@ -16,6 +16,7 @@ from __future__ import annotations
 import datetime
 import uuid
 import re
+import json
 from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
@@ -114,6 +115,23 @@ def create_app() -> FastAPI:
         """到期复习题目列表。"""
         reviews = memory_tools.get_due_reviews(limit)
         return {"reviews": reviews, "count": len(reviews)}
+
+    @app.get("/api/orchestration/runs")
+    def get_orchestration_runs(
+        session_id: str | None = Query(default=None),
+        question_id: str | None = Query(default=None),
+        limit: int = Query(default=20, ge=1, le=100),
+    ) -> dict[str, Any]:
+        """查询编排闭环结果，支持按会话/题目过滤。"""
+        runs = memory_tools.get_orchestration_runs(
+            session_id=session_id if (session_id and session_id.strip()) else None,
+            question_id=question_id if (question_id and question_id.strip()) else None,
+            limit=limit,
+        )
+        return {
+            "runs": [_normalize_orchestration_run(run) for run in runs],
+            "count": len(runs),
+        }
 
     @app.get("/api/questions/random")
     def random_question(
@@ -290,10 +308,43 @@ async def _handle_submit_answer_message(
             "overall_score": sum(scores.values()) / 4,
             "orchestration": {
                 "run_id": orchestration.get("run_id"),
+                "status": orchestration.get("status", "ok"),
+                "question_id": orchestration.get("question_id"),
                 "recommendation_type": orchestration.get("recommendation", {}).get(
                     "report_type"
                 ),
                 "events": len(orchestration.get("events") or []),
+                "analysis": _orchestration_brief(
+                    orchestration.get("analysis", {}),
+                    keys=("status", "error_type", "main_gap", "remedial_advice"),
+                ),
+                "schedule": _orchestration_brief(
+                    orchestration.get("schedule", {}),
+                    keys=(
+                        "status",
+                        "next_review",
+                        "review_interval_days",
+                        "easiness_factor",
+                    ),
+                ),
+                "relations": _orchestration_brief(
+                    orchestration.get("relations", {}),
+                    keys=("status", "count"),
+                ),
+                "recommendation": {
+                    "report_type": orchestration.get("recommendation", {}).get(
+                        "report_type"
+                    ),
+                    "status": orchestration.get("recommendation", {}).get("status"),
+                    "summary": orchestration.get("recommendation", {}).get("summary"),
+                },
+                "encouragement": _orchestration_brief(
+                    orchestration.get("encouragement", {}),
+                    keys=("status", "encouragement", "hint"),
+                ),
+                "event_summary": _summarize_orchestration_events(
+                    orchestration.get("events") or []
+                ),
             },
             "message": "评分完成，闭环已写入。",
         }
@@ -380,6 +431,48 @@ def _derive_weak_points(scores: dict[str, float]) -> list[str]:
 def _round_score(value: float) -> float:
     """统一评分精度，避免返回过长小数。"""
     return round(float(value), 2)
+
+
+def _normalize_orchestration_run(run: dict[str, Any]) -> dict[str, Any]:
+    """把 orchestration_runs 的 payload JSON 字符串标准化为对象。"""
+    normalized = dict(run)
+    payload = normalized.get("payload")
+    if isinstance(payload, str):
+        normalized["payload"] = _safe_json(payload)
+    return normalized
+
+
+def _safe_json(raw: str) -> Any:
+    """安全解析 JSON，失败时返回原始字符串。"""
+    try:
+        return json.loads(raw)
+    except Exception:
+        return raw
+
+
+def _orchestration_brief(data: dict[str, Any], keys: tuple[str, ...]) -> dict[str, Any]:
+    """从闭环子结果中提取 UI 可直接展示的最小字段。"""
+    if not isinstance(data, dict):
+        return {}
+    return {key: data.get(key) for key in keys if key in data}
+
+
+def _summarize_orchestration_events(
+    events: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """压缩事件日志，便于前端快速渲染。"""
+    summary: list[dict[str, Any]] = []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        summary.append(
+            {
+                "agent": str(event.get("agent") or event.get("from_agent") or ""),
+                "message": str(event.get("message") or event.get("message_type") or ""),
+                "has_payload": bool(event.get("payload")),
+            }
+        )
+    return summary
 
 
 app = create_app()

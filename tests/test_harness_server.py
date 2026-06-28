@@ -174,6 +174,47 @@ def test_interview_websocket_submit_answer_protocol(
         assert complete["orchestration"]["events"] >= 5
 
 
+def test_orchestration_runs_api_by_session_and_question(
+    api_client: TestClient,
+) -> None:
+    """WS 评分后，闭环记录可通过 API 按会话和题目查询。"""
+    with api_client.websocket_connect("/ws/interview") as websocket:
+        websocket.receive_json()
+        websocket.send_json(
+            {
+                "type": "submit_answer",
+                "question_id": "hashmap-basic",
+                "answer": "数组、链表和红黑树。",
+                "include_report": True,
+                "session_id": "session-fixed-001",
+            }
+        )
+
+        _ = websocket.receive_json()
+        _ = websocket.receive_json()
+        _ = websocket.receive_json()
+        complete = websocket.receive_json()
+
+    response = api_client.get(
+        "/api/orchestration/runs?session_id=session-fixed-001&question_id=hashmap-basic"
+    )
+    body = response.json()
+    assert response.status_code == 200
+    assert body["count"] == 1
+
+    run = body["runs"][0]
+    assert run["session_id"] == "session-fixed-001"
+    assert run["question_id"] == "hashmap-basic"
+    assert int(run["learning_record_id"]) == complete["record_id"]
+    assert (
+        run["payload"]["analysis_error_type"]
+        == complete["orchestration"]["analysis"]["error_type"]
+    )
+    assert int(run["id"]) >= 1
+    assert complete["orchestration"]["recommendation"]["report_type"] == "weekly"
+    assert "summary" in complete["orchestration"]["recommendation"]
+
+
 def test_interview_websocket_submit_answer_with_invalid_payload(api_client: TestClient) -> None:
     with api_client.websocket_connect("/ws/interview") as websocket:
         websocket.receive_json()
