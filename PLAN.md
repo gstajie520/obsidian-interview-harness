@@ -63,7 +63,7 @@ obsidian-interview-harness/
 │   │   ├── scheduler_agent.py       ✅ 复习调度器基础能力
 │   │   ├── linker_agent.py          ⏳ 知识关联器骨架
 │   │   ├── analyzer_agent.py        ⏳ 错题分析师骨架
-│   │   ├── supervisor_agent.py      ⏳ 监督助手骨架
+│   │   ├── supervisor_agent.py      ✅ 监督助手基础报告能力
 │   │   └── buddy_agent.py           ⏳ 陪练伙伴骨架
 │   ├── tools/
 │   │   ├── question_tools.py        ✅ 题库读取工具
@@ -209,7 +209,7 @@ python -m pytest tests/test_scheduler_agent.py -q
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| SupervisorAgent | 待实现 | 日报、周报、学习趋势、瓶颈识别 |
+| SupervisorAgent | 基础完成 | 已支持日报、周报 Markdown、薄弱模块和到期复习汇总；趋势分析后续增强 |
 | AnalyzerAgent | 待实现 | 错题原因分类、相似错误、补救建议 |
 | LinkerAgent | 待实现 | 相关题推荐、知识关系、后续可引入 TF-IDF |
 | BuddyAgent | 待实现 | 分级提示、通俗解释、学习陪伴 |
@@ -223,25 +223,9 @@ python -m pytest tests/test_scheduler_agent.py -q
 
 ## 6. 下一步开发计划
 
-### Step 1: SupervisorAgent 学习报告
+### Step 1: AnalyzerAgent 错题分析
 
-优先级最高，因为它能把已有数据变成用户看得懂的反馈。
-
-目标：
-
-- 读取学习统计、薄弱模块、到期复习。
-- 生成每日学习简报。
-- 生成周报 Markdown。
-- 输出内容要适合 Python 初学者理解，避免只有机器统计。
-
-建议文件：
-
-```text
-agents/roles/supervisor_agent.py
-tests/test_supervisor_agent.py
-```
-
-### Step 2: AnalyzerAgent 错题分析
+优先级最高，因为 SupervisorAgent 已能生成基础报告，下一步需要把低分记录转成可执行的补救建议。
 
 目标：
 
@@ -257,7 +241,7 @@ agents/roles/analyzer_agent.py
 tests/test_analyzer_agent.py
 ```
 
-### Step 3: LinkerAgent 知识关联
+### Step 2: LinkerAgent 知识关联
 
 目标：
 
@@ -272,7 +256,7 @@ agents/roles/linker_agent.py
 tests/test_linker_agent.py
 ```
 
-### Step 4: BuddyAgent 陪练伙伴
+### Step 3: BuddyAgent 陪练伙伴
 
 目标：
 
@@ -287,7 +271,7 @@ agents/roles/buddy_agent.py
 tests/test_buddy_agent.py
 ```
 
-### Step 5: 多 Agent 编排器
+### Step 4: 多 Agent 编排器
 
 目标：
 
@@ -325,7 +309,7 @@ tests/test_multi_agent_orchestrator.py
 
 - [x] InterviewerAgent MVP。
 - [x] SchedulerAgent 基础能力。
-- [ ] SupervisorAgent 报告能力。
+- [x] SupervisorAgent 基础报告能力。
 - [ ] AnalyzerAgent 错题分析能力。
 - [ ] LinkerAgent 关联推荐能力。
 - [ ] BuddyAgent 陪练能力。

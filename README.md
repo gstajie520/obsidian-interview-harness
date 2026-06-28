@@ -44,7 +44,8 @@
 | MySQL | 可选 | 有配置和 schema，非默认启动方式 |
 | FastAPI 基础服务 | 已实现 | 会话、统计和题目查询接口可用 |
 | 复习调度器 Agent | 部分实现 | 可生成每日复习清单、更新下次复习时间 |
-| 其他 4 个 Agent | 规划中 | 当前主要是角色骨架和定义文档 |
+| 监督助手 Agent | 部分实现 | 可生成日报、周报 Markdown，并汇总薄弱模块和到期复习 |
+| 其他 3 个 Agent | 规划中 | 知识关联器、错题分析师、陪练伙伴仍主要是角色骨架和定义文档 |
 | Web UI | 规划中 | 当前主要入口仍是命令行，API 已开始提供 |
 
 ## 快速开始
@@ -156,7 +157,7 @@ AI-Knowledge/
 │   │   ├── scheduler_agent.py      # 复习调度器基础能力
 │   │   ├── linker_agent.py         # 知识关联器骨架
 │   │   ├── analyzer_agent.py       # 错题分析师骨架
-│   │   ├── supervisor_agent.py     # 监督助手骨架
+│   │   ├── supervisor_agent.py     # 监督助手基础报告能力
 │   │   └── buddy_agent.py          # 陪练伙伴骨架
 │   ├── tools/                      # Agent 可调用工具
 │   │   ├── question_tools.py       # 题库读取工具

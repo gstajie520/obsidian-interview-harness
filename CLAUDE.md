@@ -70,7 +70,8 @@ git config core.hooksPath .githooks
 | FastAPI 服务 | 已实现基础能力 | 会话、统计、题目查询、健康检查接口可用 |
 | WebSocket | 协议骨架已实现 | `/ws/interview` 可联调实时消息，真实 LLM 流式评分待接入 |
 | 复习调度器 Agent | 部分实现 | 可生成每日复习清单，并更新题目下次复习时间 |
-| 其他角色 Agent | 骨架/规划中 | `LinkerAgent`、`AnalyzerAgent`、`SupervisorAgent`、`BuddyAgent` 待实现业务能力 |
+| 监督助手 Agent | 部分实现 | 可生成日报、周报 Markdown，并汇总薄弱模块和到期复习 |
+| 其他角色 Agent | 骨架/规划中 | `LinkerAgent`、`AnalyzerAgent`、`BuddyAgent` 待实现业务能力 |
 | 多 Agent 编排 | 未实现 | 还没有统一 orchestrator 和消息总线 |
 | Web UI | 未实现 | API 已具备前端联调基础 |
 | Obsidian 自动导出 | 未实现 | 现阶段仍以数据库和 Markdown 知识库为主 |
@@ -118,7 +119,7 @@ obsidian-interview-harness/
 │   │   ├── scheduler_agent.py       # 复习调度器部分实现
 │   │   ├── linker_agent.py          # 知识关联器骨架
 │   │   ├── analyzer_agent.py        # 错题分析师骨架
-│   │   ├── supervisor_agent.py      # 监督助手骨架
+│   │   ├── supervisor_agent.py      # 监督助手基础报告能力
 │   │   └── buddy_agent.py           # 陪练伙伴骨架
 │   ├── tools/
 │   │   ├── question_tools.py        # Markdown 题库读取
@@ -139,6 +140,7 @@ obsidian-interview-harness/
 │   ├── test_import_questions.py
 │   ├── test_interviewer_mvp_flow.py
 │   ├── test_memory_tools.py
+│   ├── test_supervisor_agent.py
 │   └── test_scheduler_agent.py
 ├── .harness/
 │   ├── config/
@@ -252,13 +254,12 @@ python scripts/test_agent_loop.py
 
 ## 当前开发优先级
 
-1. **补齐 SupervisorAgent**：生成每日/周学习报告，先输出 Markdown。
-2. **补齐 AnalyzerAgent**：根据低分记录分析错误类型和补救建议。
-3. **补齐 LinkerAgent**：先做轻量关键词/模块关联，再考虑 TF-IDF。
-4. **补齐 BuddyAgent**：实现提示、通俗解释和学习陪伴能力。
-5. **实现多 Agent 编排器**：让 Interviewer、Scheduler、Analyzer、Linker、Supervisor 能串起来。
-6. **增强 WebSocket**：从协议骨架升级到真实面试流式交互。
-7. **开发 Web UI 和 Obsidian 导出**：在 API 稳定后推进。
+1. **补齐 AnalyzerAgent**：根据低分记录分析错误类型和补救建议。
+2. **补齐 LinkerAgent**：先做轻量关键词/模块关联，再考虑 TF-IDF。
+3. **补齐 BuddyAgent**：实现提示、通俗解释和学习陪伴能力。
+4. **实现多 Agent 编排器**：让 Interviewer、Scheduler、Analyzer、Linker、Supervisor 能串起来。
+5. **增强 WebSocket**：从协议骨架升级到真实面试流式交互。
+6. **开发 Web UI 和 Obsidian 导出**：在 API 稳定后推进。
 
 ---
 
