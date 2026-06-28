@@ -1,8 +1,9 @@
 {
   "port": 14096,
   "hostname": "127.0.0.1",
-  "autoStart": true,
+  "autoStart": false,
   "opencodePath": "opencode",
+  "projectDirectory": "",
   "startupTimeout": 45000,
   "defaultViewLocation": "sidebar",
   "injectWorkspaceContext": false,

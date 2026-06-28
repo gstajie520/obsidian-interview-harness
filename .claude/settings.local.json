@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/generate_moc.py)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git commit -m 'feat\\(moc\\): 实现 Obsidian 双链索引生成脚本 *)",
+      "Bash(head -3 \"Java基础/✅final、finally、finalize有什么区别.md\")",
+      "Bash(head -3 \"Java基础/✅Java是值传递还是引用传递？/✅Java是值传递还是引用传递？.md\")",
+      "Bash(python scripts/add_frontmatter.py)",
+      "Read(//e/Gitcode/**)",
+      "Read(//e/Gitcode/obsidian-interview-harness/MyBatis/**)",
+      "Bash(git commit *)"
+    ]
+  }
+}

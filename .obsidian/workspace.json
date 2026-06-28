@@ -4,21 +4,21 @@
     "type": "split",
     "children": [
       {
-        "id": "d1a509fc3fbe2a30",
+        "id": "9b4be299c65b1a8a",
         "type": "tabs",
         "children": [
           {
-            "id": "f2aa171b91322896",
+            "id": "f7bce08c9f0df412",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "知识库/Java面试/本地缓存/✅如何实现多级缓存？.md",
+                "file": "知识库/Java面试/Java基础/Java基础.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "✅如何实现多级缓存？"
+              "title": "Java基础"
             }
           }
         ]
@@ -94,6 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
+                "file": "知识库/Java面试/Java 8 Gu 10/本地缓存/✅如何实现多级缓存的一致性？.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -103,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "反向链接"
+              "title": "✅如何实现多级缓存的一致性？ 的反向链接列表"
             }
           },
           {
@@ -112,11 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
+                "file": "知识库/Java面试/Java 8 Gu 10/本地缓存/✅如何实现多级缓存的一致性？.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "出链"
+              "title": "✅如何实现多级缓存的一致性？ 的出链列表"
             }
           },
           {
@@ -154,23 +156,23 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "未命名.base",
-                "followCursor": false,
-                "showSearch": false,
+                "file": "知识库/Java面试/Java 8 Gu 10/本地缓存/✅如何实现多级缓存的一致性？.md",
+                "followCursor": true,
+                "showSearch": true,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "未命名 的大纲"
+              "title": "✅如何实现多级缓存的一致性？ 的大纲"
             }
           },
           {
-            "id": "1136a0c28e3363eb",
+            "id": "72023d54ccc1baae",
             "type": "leaf",
             "state": {
-              "type": "opencode-view",
+              "type": "review-queue-list-view",
               "state": {},
-              "icon": "opencode-logo",
-              "title": "OpenCode"
+              "icon": "SpacedRepIcon",
+              "title": "笔记复习序列"
             }
           }
         ],
@@ -178,11 +180,11 @@
       }
     ],
     "direction": "horizontal",
-    "width": 768.5
+    "width": 200,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
-      "obsidian42-brat:BRAT": false,
       "switcher:打开快速切换": false,
       "graph:查看关系图谱": false,
       "canvas:新建白板": false,
@@ -190,57 +192,59 @@
       "templates:插入模板": false,
       "command-palette:打开命令面板": false,
       "bases:新建数据库": false,
-      "opencode-obsidian:OpenCode": false
+      "obsidian42-brat:BRAT": false,
+      "obsidian-spaced-repetition:复习卡片": false,
+      "obsidian-excalidraw-plugin:新建绘图文件": false
     }
   },
-  "active": "f2aa171b91322896",
+  "active": "e9a6e91bc3edadc0",
   "lastOpenFiles": [
-    "知识库/Java面试/本地缓存/✅你知道哪些缓存失效算法？.md",
-    "PLAN.md.tmp.13436.30f3150a9b35",
-    "requirements.txt",
-    "requirements.txt.tmp.13436.f0d60d06fa0a",
-    "scripts/init_database.py.tmp.13436.e1162199cec2",
-    "scripts/init_database.py.tmp.13436.82c21d492747",
-    "scripts/init_database.py",
-    "scripts/init_database.py.tmp.13436.09c1ca617dd7",
-    "Agent-Harness-Develop-Book/ref/Claude Code架构.png",
-    "Agent-Harness-Develop-Book/ref",
-    "Agent-Harness-Develop-Book/README.md",
-    "Agent-Harness-Develop-Book",
-    "面试题库",
-    "Agent Harness 面试助手.md",
-    "学习笔记模板.md",
-    "背题进度仪表盘.md",
-    "wiki/log.md",
-    "高频考点.md",
-    "AI 陪练模式.md",
-    "使用指南.md",
-    "Java八股文/本地缓存/✅你知道哪些缓存失效算法？.md",
-    "Java八股文/本地缓存/✅本地缓存和分布式缓存有什么区别？.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202305-202306.md",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/🧣🧣🧣项目实战课介绍&老用户福利.md",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-8.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-7.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-6.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-5.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-4.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-3.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-2.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-1.png",
-    "Java八股文/📮📮📮必读📮📮📮/🧣🧣🧣项目实战课介绍&老用户福利/image-0.png",
-    "Java八股文/📮📮📮必读📮📮📮/To读者&交流群/To读者&交流群.md",
-    "Java八股文/📮📮📮必读📮📮📮/AI课优惠券/AI课优惠券.md",
-    "Java八股文/📮📮📮必读📮📮📮/🔥🔥🔥更新Timeline_202603.md",
-    "Java八股文/📮📮📮必读📮📮📮/💯💯💯我该看哪些东西？.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202602.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202601.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202512.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202511.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202510.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202509.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202508.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202507.md",
-    "Java八股文/📮📮📮必读📮📮📮/更新Timeline_202506.md",
+    "web_ui/index.html",
+    "web_ui",
+    "agents/core/__pycache__/message_bus.cpython-313.pyc",
+    "agents/core/message_bus.py",
+    "tests/__pycache__/test_multi_agent_orchestrator.cpython-313.pyc",
+    "tests/__pycache__/test_buddy_agent.cpython-313.pyc",
+    "scripts/__pycache__/multi_agent_orchestrator.cpython-313.pyc",
+    "tests/__pycache__/test_multi_agent_orchestrator.cpython-313-pytest-8.4.2.pyc",
+    "tests/test_multi_agent_orchestrator.py",
+    "scripts/multi_agent_orchestrator.py",
+    "tests/__pycache__/test_buddy_agent.cpython-313-pytest-8.4.2.pyc",
+    "知识库/Java面试/Java基础/✅为什么不能用浮点数表示金额？/✅为什么不能用浮点数表示金额？.md",
+    "知识库/Java面试/Java基础/Java基础.md",
+    "知识库/Java面试.md",
+    "知识库/Java面试/场景题/场景题.md",
+    "知识库/Java面试/场景题/✅购物车中如何解决重复下单的问题？/✅购物车中如何解决重复下单的问题？.md",
+    "SYSTEM_LEARNING_GUIDE.md",
+    "README.md",
+    "LEARNING_MAP.md",
+    "PLAN.md",
+    "CLAUDE.md",
+    "知识库/Java面试/Java基础/✅Arrays.sort是使用什么排序算法实现的？.md",
+    "知识库/Java面试/🧭插件使用速查.md",
+    "知识库/Java面试/📊学习仪表盘.md",
+    "Excalidraw/Drawing 2026-06-27 16.32.57.excalidraw.md",
+    "知识库/Java面试/场景题/✅让你设计一个秒杀系统，你会考虑哪些问题？/✅让你设计一个秒杀系统，你会考虑哪些问题？.md",
+    "知识库/Java面试/场景题/✅40亿个QQ号，限制1G内存，如何去重？/✅40亿个QQ号，限制1G内存，如何去重？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/✅Spring AI中的advisor机制了解吗？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-13.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-12.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-11.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-10.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-9.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-8.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-7.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-6.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-5.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅Spring AI中的advisor机制了解吗？/image-4.png",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是Agent Skill？/✅什么是Agent Skill？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是A2A，和MCP有什么区别？/✅什么是A2A，和MCP有什么区别？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是向量数据库？/✅什么是向量数据库？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是AI Agent？/✅什么是AI Agent？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是MCP？/✅什么是MCP？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅什么是Function Calling？/✅什么是Function Calling？.md",
+    "知识库/Java面试/Java 8 Gu 10/AI&大模型/✅对RAG了解吗？谈谈什么是RAG？/✅对RAG了解吗？谈谈什么是RAG？.md",
+    "知识库/Java面试/Java 8 Gu 10/大厂实践/✅小红书靠MySQL抗秒杀的方案/✅小红书靠MySQL抗秒杀的方案.md",
     "未命名.canvas"
   ]
 }
