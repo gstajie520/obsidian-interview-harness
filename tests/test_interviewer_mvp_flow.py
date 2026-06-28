@@ -128,6 +128,7 @@ def test_interviewer_agent_completes_one_question_mvp_flow(
 ) -> None:
     agent = InterviewerAgent(config={"llm": {"model": "fake-model"}})
     agent.llm_client = InterviewFlowLLMClient()
+    agent.config["orchestrator"] = {"enabled": False}
 
     opening = asyncio.run(agent.start_interview())
     feedback = asyncio.run(agent.continue_interview("数组、链表和红黑树。"))
@@ -140,3 +141,26 @@ def test_interviewer_agent_completes_one_question_mvp_flow(
     assert metadata["module"] == "Java基础"
     assert metadata["total_attempts"] == 1
     assert metadata["avg_score"] == 3.0
+
+
+def test_interviewer_triggers_orchestrator_after_evaluation(
+    isolated_interviewer_environment: None,
+) -> None:
+    agent = InterviewerAgent(config={"llm": {"model": "fake-model"}})
+    agent.llm_client = InterviewFlowLLMClient()
+    agent.config["orchestrator"] = {"enabled": True, "linker_top_k": 2}
+
+    asyncio.run(agent.start_interview())
+    asyncio.run(agent.continue_interview("数组、链表和红黑树。"))
+
+    latest_runs = memory_tools.get_orchestration_runs(question_id="hashmap-basic", limit=5)
+    assert latest_runs, "保存评估后应有一条编排记录"
+    latest = latest_runs[0]
+    assert latest["question_id"] == "hashmap-basic"
+    assert int(latest["id"]) > 0
+
+    interactions = memory_tools.get_agent_interactions(limit=20)
+    assert len(interactions) >= 5
+    agents = {item["from_agent"] for item in interactions if item["from_agent"]}
+    assert "supervisor" in agents
+    assert "buddy" in agents

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from agents.core import MessageBus
 from agents.roles import (
     AnalyzerAgent,
     BuddyAgent,
@@ -26,6 +27,7 @@ from agents.roles import (
     SupervisorAgent,
 )
 from agents.tools import question_tools
+from agents.tools import memory_tools
 
 
 class MultiAgentOrchestrator:
@@ -35,7 +37,11 @@ class MultiAgentOrchestrator:
     Orchestrator 负责把这些业务按顺序串起来并保留事件日志。
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+    def __init__(
+        self,
+        config: Optional[dict[str, Any]] = None,
+        message_bus: Optional[MessageBus] = None,
+    ) -> None:
         agent_config = config or {}
         # 默认不走 LLM 的规则方法，保持 deterministic，方便测试。
         llm_cfg = agent_config.get("llm", {"model": "fake-model"})
@@ -45,18 +51,23 @@ class MultiAgentOrchestrator:
         self.supervisor = SupervisorAgent(config={"llm": llm_cfg})
         self.buddy = BuddyAgent(config={"llm": llm_cfg})
 
+        self.message_bus = message_bus or MessageBus()
+
         self.linker_top_k = int(agent_config.get("linker_top_k", 5))
 
     def orchestrate_after_answer(
         self,
         record: dict[str, Any],
         include_report: bool = False,
+        session_id: Optional[str] = None,
+        record_id: Optional[int] = None,
     ) -> dict[str, Any]:
         """执行一次答题后编排。
 
         返回值包含每个 Agent 的产出以及统一的 `events`。
         这样后续可以直接把 events 写入日志、数据库或消息总线。
         """
+        self.message_bus.clear()
         events: list[dict[str, Any]] = []
 
         events.append(
@@ -72,6 +83,21 @@ class MultiAgentOrchestrator:
         relations = self._run_linker(record, events)
         recommendation = self._run_supervisor(include_report, events)
         encouragement = self._run_buddy(record, analysis, events)
+        run_id = self._persist_result(
+            question_id=self._question_id(record),
+            result={
+                "status": "ok",
+                "question_id": self._question_id(record),
+                "analysis": analysis,
+                "schedule": schedule,
+                "relations": relations,
+                "recommendation": recommendation,
+                "encouragement": encouragement,
+                "events": events,
+            },
+            session_id=session_id,
+            record_id=record_id,
+        )
 
         return {
             "status": "ok",
@@ -82,6 +108,7 @@ class MultiAgentOrchestrator:
             "recommendation": recommendation,
             "encouragement": encouragement,
             "events": events,
+            "run_id": run_id,
         }
 
     def _run_analyzer(
@@ -97,6 +124,7 @@ class MultiAgentOrchestrator:
         try:
             analysis = self.analyzer.analyze_wrong_answer(record)
             events.append(self._record_event("analyzer_done", "错题分析完成", analysis))
+            self._publish_bus_event("analyzer", "linker", "response", analysis)
             return analysis
         except Exception as exc:
             fallback = {
@@ -111,6 +139,7 @@ class MultiAgentOrchestrator:
                     fallback,
                 )
             )
+            self._publish_bus_event("analyzer", "orchestrator", "error", fallback)
             return fallback
 
     def _run_scheduler(
@@ -128,6 +157,7 @@ class MultiAgentOrchestrator:
             performance=performance,
         )
         events.append(self._record_event("scheduler_done", "复习计划更新", schedule))
+        self._publish_bus_event("scheduler", "linker", "response", schedule)
         return schedule
 
     def _run_linker(
@@ -144,6 +174,7 @@ class MultiAgentOrchestrator:
             top_k=self.linker_top_k,
         )
         events.append(self._record_event("linker_done", "知识关联完成", relations))
+        self._publish_bus_event("linker", "supervisor", "response", relations)
         return relations
 
     def _run_supervisor(
@@ -155,10 +186,12 @@ class MultiAgentOrchestrator:
         if include_report:
             recommendation = self.supervisor.generate_weekly_report(limit=3)
             events.append(self._record_event("supervisor_done", "生成周报", recommendation))
+            self._publish_bus_event("supervisor", "buddy", "response", recommendation)
             return recommendation
 
         recommendation = self.supervisor.generate_daily_report(limit=3)
         events.append(self._record_event("supervisor_done", "生成日报", recommendation))
+        self._publish_bus_event("supervisor", "buddy", "response", recommendation)
         return recommendation
 
     def _run_buddy(
@@ -208,6 +241,7 @@ class MultiAgentOrchestrator:
                 session_minutes=int(record.get("session_minutes") or 0),
             ),
         }
+        self._publish_bus_event("buddy", "orchestrator", "response", result)
         events.append(self._record_event("buddy_done", "陪练建议生成", result))
         return result
 
@@ -293,6 +327,47 @@ class MultiAgentOrchestrator:
             "message": message,
             "payload": payload,
         }
+
+    def _publish_bus_event(
+        self,
+        from_agent: str,
+        to_agent: str,
+        message_type: str,
+        payload: dict[str, Any],
+    ) -> None:
+        """发布并可审计的 Agent 协作事件。"""
+        self.message_bus.publish(
+            from_agent=from_agent,
+            to_agent=to_agent,
+            message_type=message_type,
+            message=payload,
+        )
+
+    def _persist_result(
+        self,
+        question_id: str,
+        result: dict[str, Any],
+        session_id: Optional[str],
+        record_id: Optional[int],
+    ) -> int:
+        """将一次编排闭环结果落库，供后续 API 与审计使用。"""
+        run_id = memory_tools.save_orchestration_run(
+            question_id=question_id,
+            result=result,
+            session_id=session_id,
+            record_id=record_id,
+        )
+
+        for event in self.message_bus.get_events():
+            memory_tools.log_agent_interaction(
+                from_agent=str(event.get("from_agent") or ""),
+                to_agent=str(event.get("to_agent") or ""),
+                message_type=str(event.get("message_type") or "event"),
+                content=event.get("payload") or {},
+                session_id=session_id,
+            )
+
+        return run_id
 
 
 def run_demo(record: dict[str, Any], include_report: bool = False) -> dict[str, Any]:

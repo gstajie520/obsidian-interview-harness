@@ -12,7 +12,7 @@
 
 import asyncio
 import datetime
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 # 这里都是项目内部模块导入。Python 的包导入和 Java 的 import 类似，
 # 但文件夹必须能被识别为 package，通常依靠 __init__.py。
@@ -21,6 +21,9 @@ from agents.core.base_agent import Agent
 from agents.core.context_manager import ContextManager
 from agents.core.tool_registry import ToolRegistry
 from agents.tools import memory_tools, question_tools
+
+if TYPE_CHECKING:
+    from scripts.multi_agent_orchestrator import MultiAgentOrchestrator
 
 
 class InterviewerAgent(Agent):
@@ -76,6 +79,30 @@ class InterviewerAgent(Agent):
         # 在告诉读者“这里可能是 None”。
         self.current_question = None
         self.session_id = None
+        self._orchestrator: Optional["MultiAgentOrchestrator"] = None
+        orchestrator_config = self.config.get("orchestrator", {})
+        self.enable_orchestrator = bool(
+            orchestrator_config.get("enabled", True),
+        )
+
+    @property
+    def orchestrator(self) -> Optional["MultiAgentOrchestrator"]:
+        """延迟初始化编排器，避免 import 循环。"""
+        if not self.enable_orchestrator:
+            return None
+        if self._orchestrator is not None:
+            return self._orchestrator
+
+        from scripts.multi_agent_orchestrator import MultiAgentOrchestrator
+
+        orchestrator_config = self.config.get("orchestrator", {})
+        self._orchestrator = MultiAgentOrchestrator(
+            config={
+                "llm": self.config.get("llm", {"model": "fake-model"}),
+                "linker_top_k": orchestrator_config.get("linker_top_k", 5),
+            }
+        )
+        return self._orchestrator
 
     def _register_tools(self) -> None:
         """注册面试官可用的工具
@@ -231,11 +258,29 @@ class InterviewerAgent(Agent):
                 overall_score = sum(scores.values()) / len(scores)
                 memory_tools.calculate_next_review(question_id, overall_score)
 
+                orchestration_result = None
+                if self.orchestrator is not None:
+                    orchestration_result = self.orchestrator.orchestrate_after_answer(
+                        record={
+                            "question_id": question_id,
+                            "question": q.title,
+                            "module": q.module,
+                            "user_answer": user_answer,
+                            "scores": scores,
+                            "weak_points": weak_list,
+                            "consecutive_success": 0,
+                        },
+                        include_report=False,
+                        session_id=self.session_id or "default",
+                        record_id=record_id,
+                    )
+
                 return {
                     "status": "success",
                     "record_id": record_id,
                     "overall_score": overall_score,
                     "message": "评估结果已保存",
+                    "orchestration": orchestration_result,
                 }
             except Exception as e:
                 return {"status": "error", "message": str(e)}

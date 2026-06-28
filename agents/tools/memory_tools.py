@@ -449,6 +449,185 @@ def update_session_stats(session_id: str, stats: Dict[str, Any]) -> None:
     conn.close()
 
 
+def log_agent_interaction(
+    from_agent: str,
+    to_agent: str,
+    message_type: str,
+    content: Any,
+    session_id: Optional[str] = None,
+) -> None:
+    """记录一条 Agent 协作事件，作为多 Agent 编排的审计日志。"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    _ensure_orchestration_tables(cursor)
+    cursor.execute(
+        _ph(
+            """
+            INSERT INTO agent_interactions
+            (session_id, from_agent, to_agent, message_type, content)
+            VALUES (?, ?, ?, ?, ?)
+            """
+        ),
+        (
+            session_id,
+            from_agent,
+            to_agent,
+            message_type,
+            json.dumps(content, ensure_ascii=False),
+        ),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_agent_interactions(
+    session_id: Optional[str] = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    """读取 Agent 协作事件。"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    _ensure_orchestration_tables(cursor)
+    if session_id:
+        cursor.execute(
+            _ph(
+                """
+                SELECT session_id, from_agent, to_agent, message_type,
+                    content, timestamp
+                FROM agent_interactions
+                WHERE session_id = ?
+                ORDER BY timestamp DESC
+                LIMIT ?
+                """
+            ),
+            (session_id, limit),
+        )
+    else:
+        cursor.execute(
+            _ph(
+                """
+                SELECT session_id, from_agent, to_agent, message_type,
+                    content, timestamp
+                FROM agent_interactions
+                ORDER BY timestamp DESC
+                LIMIT ?
+                """
+            ),
+            (limit,),
+        )
+    rows = cursor.fetchall()
+    conn.close()
+    return [_row_to_dict(row) or {} for row in rows]
+
+
+def save_orchestration_run(
+    question_id: str,
+    result: Dict[str, Any],
+    session_id: Optional[str] = None,
+    record_id: Optional[int] = None,
+) -> int:
+    """保存一次编排闭环结果。"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    _ensure_orchestration_tables(cursor)
+    payload = {
+        "question_id": question_id,
+        "analysis_error_type": result.get("analysis", {}).get("error_type"),
+        "schedule_status": result.get("schedule", {}).get("status"),
+        "recommendation_type": result.get("recommendation", {}).get("report_type"),
+        "encouragement_status": result.get("encouragement", {}).get("status"),
+        "include_report": result.get("recommendation", {}).get("status")
+        == "ok",
+    }
+    cursor.execute(
+        _ph(
+            """
+            INSERT INTO orchestration_runs
+            (session_id, question_id, learning_record_id,
+             report_type, payload, status)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """
+        ),
+        (
+            session_id,
+            question_id,
+            record_id,
+            result.get("recommendation", {}).get("report_type") or "",
+            json.dumps(payload, ensure_ascii=False),
+            "ok",
+        ),
+    )
+    run_id = int(cursor.lastrowid or 0)
+    conn.commit()
+    conn.close()
+    return run_id
+
+
+def get_orchestration_runs(
+    session_id: Optional[str] = None,
+    question_id: Optional[str] = None,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """查询编排历史，支持按会话/题目筛选。"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    _ensure_orchestration_tables(cursor)
+    if session_id and question_id:
+        cursor.execute(
+            _ph(
+                """
+                SELECT *
+                FROM orchestration_runs
+                WHERE session_id = ? AND question_id = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """
+            ),
+            (session_id, question_id, limit),
+        )
+    elif session_id:
+        cursor.execute(
+            _ph(
+                """
+                SELECT *
+                FROM orchestration_runs
+                WHERE session_id = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """
+            ),
+            (session_id, limit),
+        )
+    elif question_id:
+        cursor.execute(
+            _ph(
+                """
+                SELECT *
+                FROM orchestration_runs
+                WHERE question_id = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+                """
+            ),
+            (question_id, limit),
+        )
+    else:
+        cursor.execute(
+            _ph(
+                """
+                SELECT *
+                FROM orchestration_runs
+                ORDER BY created_at DESC
+                LIMIT ?
+                """
+            ),
+            (limit,),
+        )
+    rows = cursor.fetchall()
+    conn.close()
+    return [_row_to_dict(row) or {} for row in rows]
+
+
 def get_learning_stats() -> Dict[str, Any]:
     """获取整体学习统计。"""
     conn = get_connection()
@@ -493,6 +672,24 @@ def _ensure_sqlite_schema(conn: sqlite3.Connection) -> None:
         return
     conn.executescript(_DEFAULT_SQLITE_SCHEMA)
     conn.commit()
+
+
+def _ensure_orchestration_tables(cursor: Any) -> None:
+    """确保编排相关日志表存在（延迟创建，兼容旧库）。"""
+    if _DIALECT == "mysql":
+        # MySQL 初始化通常走 schema.sql，避免在运行时动态建表。
+        return
+    if not isinstance(cursor, sqlite3.Cursor):
+        return
+    cursor.execute(
+        """
+        SELECT name FROM sqlite_master
+        WHERE type='table' AND name='agent_interactions'
+        """
+    )
+    if cursor.fetchone():
+        return
+    cursor.executescript(_ORCHESTRATION_TABLES_SCHEMA)
 
 
 def _row_to_dict(row: Any) -> Optional[Dict[str, Any]]:
@@ -585,6 +782,34 @@ CREATE INDEX IF NOT EXISTS idx_lr_question ON learning_records(question_id);
 CREATE INDEX IF NOT EXISTS idx_lr_session ON learning_records(session_id);
 CREATE INDEX IF NOT EXISTS idx_qm_module ON question_metadata(module);
 CREATE INDEX IF NOT EXISTS idx_qm_next_review ON question_metadata(next_review);
+"""
+
+_ORCHESTRATION_TABLES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS agent_interactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT,
+    timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+    from_agent TEXT NOT NULL,
+    to_agent TEXT NOT NULL,
+    message_type TEXT NOT NULL,
+    content TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_session ON agent_interactions(session_id);
+
+CREATE TABLE IF NOT EXISTS orchestration_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT,
+    question_id TEXT NOT NULL,
+    learning_record_id INTEGER,
+    report_type TEXT,
+    payload TEXT,
+    status TEXT DEFAULT 'ok',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_orch_session ON orchestration_runs(session_id);
+CREATE INDEX IF NOT EXISTS idx_orch_question ON orchestration_runs(question_id);
 """
 
 

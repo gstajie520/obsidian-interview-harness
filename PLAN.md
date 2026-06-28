@@ -246,8 +246,8 @@ python -m pytest tests/test_analyzer_agent.py -q
 | AnalyzerAgent | 基础完成 | 已支持错因分类、证据、补救建议和 Markdown；相似错误检索后续增强 |
 | LinkerAgent | 基础完成 | 已支持同模块 + 关键词 + 标题相似度推荐 + 关系类型识别 |
 | BuddyAgent | 基础完成 | 支持 3 级提示、通俗解释、鼓励与休息建议 |
-| 多 Agent 编排器 | 进行中 | 已实现线性调用链：Scheduler→Analyzer→Linker→Supervisor→Buddy |
-| 消息总线 | 待实现 | Agent 间事件通知和协作日志 |
+| 多 Agent 编排器 | ✅ 已完成 | 已实现线性调用链：Scheduler→Analyzer→Linker→Supervisor→Buddy，并支持闭环持久化 |
+| 消息总线 | ✅ 已完成 | 引入最小 MessageBus，编排器可发布/订阅事件并持久化 agent_interactions |
 | WebSocket 真实流式面试 | 待实现 | 将协议骨架接入 InterviewerAgent / LLM |
 | Web UI | 待实现 | Dashboard、Interview、Review、Stats 页面 |
 | Obsidian 导出 | 待实现 | 学习记录、周报、错题本自动生成 Markdown |
@@ -333,7 +333,7 @@ tests/test_multi_agent_orchestrator.py
 
 - [x] 编排器已完成线性流程并产出 events。
 - [x] Agent 协作结果可记录（事件 events 已由编排器返回）。
-- [ ] 错题、相关题、学习报告能在一次流程中形成完整闭环（包含后端持久化）。
+- [x] 错题、相关题、学习报告能在一次流程中形成完整闭环（包含后端持久化）。
 
 ### Milestone 5: Web UI ⏳
 
