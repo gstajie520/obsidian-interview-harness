@@ -249,7 +249,7 @@ python -m pytest tests/test_analyzer_agent.py -q
 | 多 Agent 编排器 | ✅ 已完成 | 已实现线性调用链：Scheduler→Analyzer→Linker→Supervisor→Buddy，并支持闭环持久化 |
 | 消息总线 | ✅ 已完成 | 引入最小 MessageBus，编排器可发布/订阅事件并持久化 agent_interactions |
 | WebSocket 真实流式面试 | 进行中 | 已实现答案提交评分闭环（启发式评分 + 记录保存 + 编排反馈） |
-| Web UI | 待实现 | Dashboard、Interview、Review、Stats 页面 |
+| Web UI | ✅ 基础完成 | Dashboard、Interview、Review、Stats 四页已实现，共享样式/导航/API 封装，由 FastAPI 静态托管 |
 | Obsidian 导出 | 待实现 | 学习记录、周报、错题本自动生成 Markdown |
 
 ---
@@ -337,11 +337,12 @@ tests/test_multi_agent_orchestrator.py
 
 ### Milestone 5: Web UI ⏳
 
-- [ ] Dashboard 页面。
-- [ ] Interview 页面。
-- [ ] Review 页面。
-- [ ] Stats 页面。
-- [ ] WebSocket 实时对话。
+- [x] Dashboard 页面（整体进度、掌握率、薄弱模块、到期复习汇总）。
+- [x] Interview 页面（WebSocket 实时提交答案与闭环反馈，支持从复习页带题目跳转）。
+- [x] Review 页面（到期复习表格 + 题库检索，点“去练习”跳转面试页）。
+- [x] Stats 页面（关键指标、掌握度分布、薄弱模块表格）。
+- [x] WebSocket 实时对话（Interview 页面已联调）。
+- [ ] 后续：接入真实 LLM 流式评分、图表可视化。
 
 ### Milestone 6: Obsidian 集成 ⏳
 

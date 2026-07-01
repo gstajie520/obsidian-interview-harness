@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 面试陪练 - 仪表盘</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div id="nav-root" data-active="dashboard"></div>
+
+    <section class="panel">
+      <h1>学习仪表盘</h1>
+      <p class="small">
+        汇总整体进度、掌握率、薄弱模块和到期复习，帮助你快速判断“今天该练什么”。
+        <span id="healthTag" class="tag warn">服务状态未知</span>
+      </p>
+      <div class="btns">
+        <button id="refreshBtn">刷新数据</button>
+        <a class="tag" href="index.html">去做面试 →</a>
+        <a class="tag" href="review.html">去复习 →</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>整体进度</h2>
+      <div id="statGrid" class="stat-grid"></div>
+      <hr />
+      <div class="small">掌握率</div>
+      <div class="bar"><span id="masteryBar" style="width: 0%"></span></div>
+      <div id="masteryText" class="small"></div>
+    </section>
+
+    <section class="panel">
+      <h2>薄弱模块 Top</h2>
+      <div id="weakList" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>今日到期复习</h2>
+      <div id="dueList" class="list"></div>
+    </section>
+  </div>
+
+  <script src="nav.js"></script>
+  <script src="api.js"></script>
+  <script>
+    // Dashboard 页面逻辑：拉取多个统计接口，渲染成卡片和列表。
+    const els = {
+      healthTag: document.getElementById("healthTag"),
+      refreshBtn: document.getElementById("refreshBtn"),
+      statGrid: document.getElementById("statGrid"),
+      masteryBar: document.getElementById("masteryBar"),
+      masteryText: document.getElementById("masteryText"),
+      weakList: document.getElementById("weakList"),
+      dueList: document.getElementById("dueList"),
+    };
+
+    // 概览指标的展示配置：key 对应后端字段，label 是中文名。
+    const OVERVIEW_FIELDS = [
+      { key: "total", label: "题目总数" },
+      { key: "mastered", label: "已掌握" },
+      { key: "reviewing", label: "复习中" },
+      { key: "learning", label: "学习中" },
+      { key: "untouched", label: "未开始" },
+      { key: "today_count", label: "今日练习" },
+    ];
+
+    function renderOverview(overview) {
+      els.statGrid.textContent = "";
+      for (const field of OVERVIEW_FIELDS) {
+        const card = document.createElement("div");
+        card.className = "stat-card";
+        const value = overview[field.key];
+        card.innerHTML = `
+          <div class="value">${value ?? 0}</div>
+          <div class="label">${field.label}</div>
+        `;
+        els.statGrid.appendChild(card);
+      }
+      // mastery_rate 后端返回 0~1 的比例，这里转成百分比展示。
+      const rate = Number(overview.mastery_rate || 0);
+      const percent = Math.round(rate * 100);
+      els.masteryBar.style.width = `${percent}%`;
+      els.masteryText.textContent = `${percent}%（已掌握 ${overview.mastered || 0} / 总数 ${overview.total || 0}）`;
+    }
+
+    function renderWeak(modules) {
+      els.weakList.textContent = "";
+      if (!modules.length) {
+        els.weakList.innerHTML = `<div class="item">暂无薄弱模块，继续保持。</div>`;
+        return;
+      }
+      modules.forEach((module, index) => {
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <span class="tag bad">#${index + 1}</span>
+          <a href="review.html?module=${encodeURIComponent(module)}">${module}</a>
+        `;
+        els.weakList.appendChild(div);
+      });
+    }
+
+    function renderDue(reviews) {
+      els.dueList.textContent = "";
+      if (!reviews.length) {
+        els.dueList.innerHTML = `<div class="item">今日无到期复习，安排新题吧。</div>`;
+        return;
+      }
+      for (const review of reviews) {
+        const div = document.createElement("div");
+        div.className = "item";
+        const overdue = Number(review.days_overdue || 0);
+        const overdueTag = overdue > 0
+          ? `<span class="tag bad">逾期 ${overdue} 天</span>`
+          : `<span class="tag ok">今日</span>`;
+        div.innerHTML = `
+          <div>${overdueTag} ${review.title || review.question_id}</div>
+          <div class="small">module=${review.module || "未知"} | next_review=${review.next_review || "-"}</div>
+        `;
+        els.dueList.appendChild(div);
+      }
+    }
+
+    async function loadHealth() {
+      try {
+        await API.health();
+        els.healthTag.textContent = "服务正常";
+        els.healthTag.className = "tag ok";
+      } catch (err) {
+        els.healthTag.textContent = "服务不可用";
+        els.healthTag.className = "tag bad";
+      }
+    }
+
+    async function loadAll() {
+      els.refreshBtn.disabled = true;
+      try {
+        // 多个接口相互独立，用 Promise.all 并行请求，减少等待时间。
+        const [overview, weak, due] = await Promise.all([
+          API.statsOverview(),
+          API.weakModules(5),
+          API.dueReviews(20),
+        ]);
+        renderOverview(overview);
+        renderWeak(weak.modules || []);
+        renderDue(due.reviews || []);
+      } catch (err) {
+        els.statGrid.innerHTML = `<div class="item">加载失败：${err.message}</div>`;
+      } finally {
+        els.refreshBtn.disabled = false;
+      }
+    }
+
+    els.refreshBtn.addEventListener("click", loadAll);
+    window.addEventListener("DOMContentLoaded", () => {
+      loadHealth();
+      loadAll();
+    });
+  </script>
+</body>
+</html>

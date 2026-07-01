@@ -49,7 +49,7 @@
 | LinkerAgent | 基础实现 | 已支持关键词/模块/标题相似度推荐与关系类型 |
 | BuddyAgent | 基础实现 | 支持 3 级提示、通俗解释和陪练建议 |
 | 其他 2 个 Agent | 进行中 | 知识关联器和陪练伙伴已具备基础能力，编排器正在串联 |
-| Web UI | 规划中 | 当前主要入口仍是命令行，API 已开始提供 |
+| Web UI | 基础完成 | Dashboard/Interview/Review/Stats 四页静态站点，由 FastAPI `/ui` 托管 |
 
 ## 快速开始
 
@@ -144,6 +144,20 @@ WS   /ws/interview
 ```
 
 `/ws/interview` 已实现提交答案到评分闭环的最小实时流程：返回阶段化 `evaluation_chunk` 及最终 `evaluation_complete`，并落库学习记录与多 Agent 编排结果。真实 LLM 流式打分后续可继续增强。
+
+### 7. 打开 Web UI
+
+服务启动后，浏览器访问 `/ui` 即可使用四页静态站点：
+
+```text
+http://127.0.0.1:8000/ui/            仪表盘之外的入口重定向
+http://127.0.0.1:8000/ui/dashboard.html   仪表盘：整体进度、掌握率、薄弱模块、到期复习
+http://127.0.0.1:8000/ui/index.html       面试：WebSocket 实时提交答案与闭环结果
+http://127.0.0.1:8000/ui/review.html      复习：到期列表 + 题库检索，一键跳转练习
+http://127.0.0.1:8000/ui/stats.html       统计：关键指标、掌握度分布、薄弱模块
+```
+
+四页共享 `styles.css`（设计系统）、`nav.js`（顶部导航）、`api.js`（REST 封装），页面之间通过 URL 查询参数联动，例如从复习页点“去练习”会带着 `question_id` 跳到面试页自动载入题目。
 
 ## 项目结构
 

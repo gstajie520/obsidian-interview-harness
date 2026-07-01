@@ -102,6 +102,32 @@ def test_ui_index_served(api_client: TestClient) -> None:
     assert "AI 面试陪练 - Interview UI" in text
 
 
+def test_ui_static_pages_served(api_client: TestClient) -> None:
+    """仪表盘、复习、统计三个新页面以及共享资源都能被静态服务返回。"""
+    # 用参数化列表逐个断言，类似 JUnit 的 @ParameterizedTest。
+    pages = {
+        "/ui/dashboard.html": "学习仪表盘",
+        "/ui/review.html": "复习中心",
+        "/ui/stats.html": "学习统计",
+    }
+    for path, marker in pages.items():
+        response = api_client.get(path)
+        assert response.status_code == 200, path
+        assert marker in response.text, path
+
+
+def test_ui_shared_assets_served(api_client: TestClient) -> None:
+    """共享 CSS / JS 资源存在，保证多页面能复用同一套设计与 API 封装。"""
+    for path, marker in {
+        "/ui/styles.css": ".stat-card",
+        "/ui/nav.js": "nav-root",
+        "/ui/api.js": "statsOverview",
+    }.items():
+        response = api_client.get(path)
+        assert response.status_code == 200, path
+        assert marker in response.text, path
+
+
 def test_session_lifecycle(api_client: TestClient) -> None:
     created = api_client.post(
         "/api/session/create",

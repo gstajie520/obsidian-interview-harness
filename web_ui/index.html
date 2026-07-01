@@ -4,142 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 面试陪练 - Interview UI</title>
-  <style>
-    :root {
-      --bg: #071125;
-      --card: #101b36;
-      --text: #e9edf7;
-      --muted: #94a3b8;
-      --ok: #10b981;
-      --warn: #f59e0b;
-      --bad: #ef4444;
-      --line: #22314f;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      color: var(--text);
-      background: radial-gradient(circle at 20% 10%, #11224a, var(--bg) 52%);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    }
-    .wrap {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 20px;
-      display: grid;
-      gap: 16px;
-      grid-template-columns: 1fr;
-    }
-    .panel {
-      background: rgba(16, 27, 54, 0.8);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 14px;
-      backdrop-filter: blur(3px);
-    }
-    h1,
-    h2,
-    h3 {
-      margin: 0 0 10px;
-      letter-spacing: 0.4px;
-    }
-    .row {
-      display: grid;
-      gap: 10px;
-    }
-    .row.grid2 {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
-    .btns {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    button,
-    input,
-    textarea {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: #0b1530;
-      color: var(--text);
-      padding: 10px 12px;
-    }
-    button {
-      cursor: pointer;
-      border-color: #2d4a8a;
-    }
-    button:hover {
-      border-color: #4a6cb4;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    textarea {
-      min-height: 130px;
-      resize: vertical;
-    }
-    .tag {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      margin-right: 6px;
-      background: #1e2e57;
-      color: #c7d2fe;
-    }
-    .tag.ok {
-      background: #114e3e;
-      color: #a7f3d0;
-    }
-    .tag.warn {
-      background: #543a06;
-      color: #fde68a;
-    }
-    .tag.bad {
-      background: #501a1a;
-      color: #fecaca;
-    }
-    .mono {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 13px;
-      white-space: pre-wrap;
-      word-break: break-all;
-      background: #050d1f;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      max-height: 300px;
-      overflow: auto;
-    }
-    .list {
-      display: grid;
-      gap: 8px;
-    }
-    .item {
-      border-left: 3px solid #2f467f;
-      border-radius: 6px;
-      padding: 8px 10px;
-      background: #091633;
-    }
-    .small {
-      color: var(--muted);
-      font-size: 12px;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid var(--line);
-      margin: 8px 0;
-    }
-    .status {
-      margin-left: 8px;
-    }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="wrap">
+    <div id="nav-root" data-active="interview"></div>
+
     <section class="panel">
       <h1>AI 面试陪练 - Interview Web UI</h1>
       <p class="small">基于 API + WebSocket 的最小联调页。先创建会话，再获取题目，提交答案，查看实时闭环结果。</p>
@@ -199,6 +69,7 @@
     </section>
   </div>
 
+  <script src="nav.js"></script>
   <script>
     const els = {
       sessionInput: document.getElementById("sessionId"),
@@ -443,6 +314,28 @@
       els.orchestrationList.textContent = "";
     }
 
+    // 支持从复习页带 question_id / module 跳转过来时自动预填。
+    async function applyQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      const module = params.get("module");
+      const questionId = params.get("question_id");
+      if (module) {
+        els.moduleInput.value = module;
+      }
+      if (questionId) {
+        try {
+          const q = await request(`/api/questions/${encodeURIComponent(questionId)}`);
+          currentQuestion = q;
+          els.questionTitle.textContent = q.title || q.question_id || "未命名题目";
+          els.questionMeta.textContent = `question_id=${q.question_id} | module=${q.module || "未知"}`;
+          els.submitAnswerBtn.disabled = false;
+          addLog(`已从复习页载入题目：${q.question_id}`);
+        } catch (err) {
+          addLog(`载入题目失败：${err.message}`);
+        }
+      }
+    }
+
     function bind() {
       setButtons(false);
       els.createSessionBtn.addEventListener("click", createSession);
@@ -460,6 +353,7 @@
       }
       els.sessionStatus.textContent = "准备就绪";
       setStatus("未连接", "warn");
+      applyQueryParams();
     });
   </script>
 </body>

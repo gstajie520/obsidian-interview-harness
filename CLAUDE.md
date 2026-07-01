@@ -74,7 +74,7 @@ git config core.hooksPath .githooks
 | 错题分析师 Agent | 基础实现 | 可识别概念混淆、细节遗漏、场景不足、前置知识缺失，并输出补救建议 |
 | 其他角色 Agent | 基础实现/进行中 | `LinkerAgent`、`BuddyAgent` 已具备基础能力，继续补齐关联质量 |
 | 多 Agent 编排 | 进行中 | 已有多 Agent 编排线性路径，消息总线未实现 |
-| Web UI | 未实现 | API 已具备前端联调基础 |
+| Web UI | 基础完成 | Dashboard、Interview、Review、Stats 四页，共享样式/导航/API 封装，由 FastAPI `/ui` 静态托管 |
 | Obsidian 自动导出 | 未实现 | 现阶段仍以数据库和 Markdown 知识库为主 |
 
 ---
@@ -153,6 +153,14 @@ obsidian-interview-harness/
 │   │   ├── schema.sql               # SQLite schema
 │   │   └── schema_mysql.sql         # MySQL schema
 │   └── memory/                      # 用户画像和长期记忆文件
+├── web_ui/                          # 静态 Web UI（Dashboard/Interview/Review/Stats）
+│   ├── index.html                   # 面试页（WebSocket 实时闭环）
+│   ├── dashboard.html               # 仪表盘：整体进度、薄弱模块、到期复习
+│   ├── review.html                  # 复习页：到期列表 + 题库检索
+│   ├── stats.html                   # 统计页：指标、掌握度分布、薄弱模块
+│   ├── styles.css                   # 共享设计系统
+│   ├── nav.js                       # 统一导航条注入脚本
+│   └── api.js                       # 前端公共 API 封装
 ├── 知识库/                          # Markdown 面试题库
 ├── 学习记录/                        # Obsidian 风格学习记录目录
 ├── AGENTS.md                        # 6 个 Agent 的架构设计
@@ -261,7 +269,8 @@ python scripts/test_agent_loop.py
 3. **增强 AnalyzerAgent**：后续接入相似错误检索和补救题推荐。
 4. **实现多 Agent 编排器**：让 Interviewer、Scheduler、Analyzer、Linker、Supervisor 能串起来。
 5. **增强 WebSocket**：从协议骨架升级到真实面试流式交互。
-6. **开发 Web UI 和 Obsidian 导出**：在 API 稳定后推进。
+6. **增强 Web UI**：已完成 Dashboard/Interview/Review/Stats 四页静态站点，后续接入真实 LLM 流式与更丰富的图表。
+7. **开发 Obsidian 导出**：在 API 稳定后推进。
 
 ---
 

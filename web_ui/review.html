@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 面试陪练 - 复习</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div id="nav-root" data-active="review"></div>
+
+    <section class="panel">
+      <h1>复习中心</h1>
+      <p class="small">查看到期复习题目，或按关键词/模块检索题库，点“去练习”会带着题目跳转到面试页。</p>
+    </section>
+
+    <section class="panel">
+      <h2>到期复习</h2>
+      <div class="btns">
+        <button id="refreshDueBtn">刷新到期列表</button>
+        <span id="dueSummary" class="small"></span>
+      </div>
+      <div id="dueTableWrap">
+        <table>
+          <thead>
+            <tr>
+              <th>题目</th>
+              <th>模块</th>
+              <th>掌握度</th>
+              <th>下次复习</th>
+              <th>逾期</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="dueBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>题库检索</h2>
+      <div class="row grid2">
+        <div class="row">
+          <label>关键词</label>
+          <input id="keywordInput" placeholder="如 HashMap、线程池" />
+        </div>
+        <div class="row">
+          <label>模块（可选）</label>
+          <input id="moduleInput" placeholder="如 Java基础" />
+        </div>
+      </div>
+      <div class="btns">
+        <button id="searchBtn">搜索题目</button>
+        <span id="searchSummary" class="small"></span>
+      </div>
+      <div id="searchList" class="list"></div>
+    </section>
+  </div>
+
+  <script src="nav.js"></script>
+  <script src="api.js"></script>
+  <script>
+    const els = {
+      refreshDueBtn: document.getElementById("refreshDueBtn"),
+      dueSummary: document.getElementById("dueSummary"),
+      dueBody: document.getElementById("dueBody"),
+      keywordInput: document.getElementById("keywordInput"),
+      moduleInput: document.getElementById("moduleInput"),
+      searchBtn: document.getElementById("searchBtn"),
+      searchSummary: document.getElementById("searchSummary"),
+      searchList: document.getElementById("searchList"),
+    };
+
+    // 复习/面试页之间用 URL 查询参数传递题目，避免引入额外的前端状态库。
+    function practiceHref(questionId, module) {
+      const params = new URLSearchParams();
+      if (questionId) params.set("question_id", questionId);
+      if (module) params.set("module", module);
+      return `index.html?${params.toString()}`;
+    }
+
+    function masteryTag(level) {
+      const value = String(level || "").toLowerCase();
+      if (value === "mastered" || value === "已掌握") return `<span class="tag ok">${level}</span>`;
+      if (value === "learning" || value === "学习中") return `<span class="tag warn">${level}</span>`;
+      return `<span class="tag">${level || "未知"}</span>`;
+    }
+
+    async function loadDue() {
+      els.refreshDueBtn.disabled = true;
+      try {
+        const body = await API.dueReviews(50);
+        const reviews = body.reviews || [];
+        els.dueBody.textContent = "";
+        els.dueSummary.textContent = `共 ${reviews.length} 道到期题目`;
+        if (!reviews.length) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td colspan="6">今日没有到期复习，去题库找新题吧。</td>`;
+          els.dueBody.appendChild(tr);
+          return;
+        }
+        for (const review of reviews) {
+          const tr = document.createElement("tr");
+          const overdue = Number(review.days_overdue || 0);
+          const overdueCell = overdue > 0
+            ? `<span class="tag bad">${overdue} 天</span>`
+            : `<span class="tag ok">今日</span>`;
+          tr.innerHTML = `
+            <td>${review.title || review.question_id}</td>
+            <td>${review.module || "-"}</td>
+            <td>${masteryTag(review.mastery_level)}</td>
+            <td>${review.next_review || "-"}</td>
+            <td>${overdueCell}</td>
+            <td><a class="tag" href="${practiceHref(review.question_id, review.module)}">去练习 →</a></td>
+          `;
+          els.dueBody.appendChild(tr);
+        }
+      } catch (err) {
+        els.dueSummary.textContent = `加载失败：${err.message}`;
+      } finally {
+        els.refreshDueBtn.disabled = false;
+      }
+    }
+
+    async function search() {
+      const keyword = els.keywordInput.value.trim();
+      const module = els.moduleInput.value.trim();
+      if (!keyword) {
+        els.searchSummary.textContent = "请输入关键词";
+        return;
+      }
+      els.searchBtn.disabled = true;
+      try {
+        const body = await API.searchQuestions(keyword, module || undefined);
+        const questions = body.questions || [];
+        els.searchList.textContent = "";
+        els.searchSummary.textContent = `命中 ${questions.length} 道题目`;
+        if (!questions.length) {
+          els.searchList.innerHTML = `<div class="item">没有匹配的题目，换个关键词试试。</div>`;
+          return;
+        }
+        for (const question of questions) {
+          const div = document.createElement("div");
+          div.className = "item";
+          div.innerHTML = `
+            <div><span class="tag">${question.module || "未知"}</span> ${question.title || question.question_id}</div>
+            <div class="small">question_id=${question.question_id}</div>
+            <div class="btns" style="margin-top:6px">
+              <a class="tag" href="${practiceHref(question.question_id, question.module)}">去练习 →</a>
+            </div>
+          `;
+          els.searchList.appendChild(div);
+        }
+      } catch (err) {
+        els.searchSummary.textContent = `搜索失败：${err.message}`;
+      } finally {
+        els.searchBtn.disabled = false;
+      }
+    }
+
+    els.refreshDueBtn.addEventListener("click", loadDue);
+    els.searchBtn.addEventListener("click", search);
+    els.keywordInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") search();
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 若从仪表盘的薄弱模块跳转过来，会带上 module 参数，自动填入检索框。
+      const params = new URLSearchParams(window.location.search);
+      const module = params.get("module");
+      if (module) {
+        els.moduleInput.value = module;
+      }
+      loadDue();
+    });
+  </script>
+</body>
+</html>

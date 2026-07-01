@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 面试陪练 - 学习统计</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div id="nav-root" data-active="stats"></div>
+
+    <section class="panel">
+      <h1>学习统计</h1>
+      <p class="small">
+        从整体进度、掌握分布、薄弱模块三个角度看学习情况，配合仪表盘和复习页使用。
+      </p>
+      <div class="btns">
+        <button id="refreshBtn">刷新数据</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>关键指标</h2>
+      <div id="statGrid" class="stat-grid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>掌握度分布</h2>
+      <div id="distList" class="list"></div>
+    </section>
+
+    <section class="panel">
+      <h2>薄弱模块（按平均分升序）</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>模块</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="weakBody">
+          <tr><td colspan="3" class="small">加载中...</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="nav.js"></script>
+  <script src="api.js"></script>
+  <script>
+    // Stats 页面逻辑：把 overview 转成卡片、把掌握度拆成分布条、把薄弱模块列成表格。
+    const els = {
+      refreshBtn: document.getElementById("refreshBtn"),
+      statGrid: document.getElementById("statGrid"),
+      distList: document.getElementById("distList"),
+      weakBody: document.getElementById("weakBody"),
+    };
+
+    const OVERVIEW_FIELDS = [
+      { key: "total", label: "题目总数" },
+      { key: "today_count", label: "今日练习" },
+      { key: "mastery_rate", label: "掌握率", percent: true },
+    ];
+
+    // 掌握度分布：每一档对应 overview 里的一个计数字段，用于画占比条。
+    const DIST_FIELDS = [
+      { key: "mastered", label: "已掌握", cls: "ok" },
+      { key: "reviewing", label: "复习中", cls: "warn" },
+      { key: "learning", label: "学习中", cls: "warn" },
+      { key: "untouched", label: "未开始", cls: "bad" },
+    ];
+
+    function renderOverview(overview) {
+      els.statGrid.textContent = "";
+      for (const field of OVERVIEW_FIELDS) {
+        const raw = Number(overview[field.key] || 0);
+        // 掌握率是 0~1 的比例，展示成百分比；其他字段直接展示原值。
+        const shown = field.percent ? `${Math.round(raw * 100)}%` : raw;
+        const card = document.createElement("div");
+        card.className = "stat-card";
+        card.innerHTML = `
+          <div class="value">${shown}</div>
+          <div class="label">${field.label}</div>
+        `;
+        els.statGrid.appendChild(card);
+      }
+    }
+
+    function renderDistribution(overview) {
+      els.distList.textContent = "";
+      const total = Number(overview.total || 0);
+      for (const field of DIST_FIELDS) {
+        const count = Number(overview[field.key] || 0);
+        // total 为 0 时避免除零，占比按 0 处理。
+        const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div class="small">
+            <span class="tag ${field.cls}">${field.label}</span>
+            ${count} 题 · ${percent}%
+          </div>
+          <div class="bar"><span style="width: ${percent}%"></span></div>
+        `;
+        els.distList.appendChild(div);
+      }
+    }
+
+    function renderWeak(modules) {
+      els.weakBody.textContent = "";
+      if (!modules.length) {
+        els.weakBody.innerHTML = `<tr><td colspan="3" class="small">暂无薄弱模块。</td></tr>`;
+        return;
+      }
+      modules.forEach((module, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${module}</td>
+          <td><a href="review.html?module=${encodeURIComponent(module)}">去复习 →</a></td>
+        `;
+        els.weakBody.appendChild(tr);
+      });
+    }
+
+    async function loadAll() {
+      els.refreshBtn.disabled = true;
+      try {
+        const [overview, weak] = await Promise.all([
+          API.statsOverview(),
+          API.weakModules(10),
+        ]);
+        renderOverview(overview);
+        renderDistribution(overview);
+        renderWeak(weak.modules || []);
+      } catch (err) {
+        els.statGrid.innerHTML = `<div class="item">加载失败：${err.message}</div>`;
+      } finally {
+        els.refreshBtn.disabled = false;
+      }
+    }
+
+    els.refreshBtn.addEventListener("click", loadAll);
+    window.addEventListener("DOMContentLoaded", loadAll);
+  </script>
+</body>
+</html>
