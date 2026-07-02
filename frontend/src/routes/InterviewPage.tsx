@@ -27,6 +27,7 @@ export function InterviewPage() {
   const [answer, setAnswer] = useState("");
   const [eventLog, setEventLog] = useState<string[]>([]);
   const [lastResult, setLastResult] = useState<EvaluationCompleteMessage | null>(null);
+  const [progressMessages, setProgressMessages] = useState<string[]>([]);
   const [runs, setRuns] = useState<OrchestrationRun[]>([]);
   const [socketState, setSocketState] = useState<SocketState>("connecting");
   const [transportError, setTransportError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export function InterviewPage() {
     startTransition(() => {
       setCurrentQuestion(question);
       setLastResult(null);
+      setProgressMessages([]);
       setAnswer("");
     });
     appendLog(`已载入题目：${question.question_id}`);
@@ -120,15 +122,18 @@ export function InterviewPage() {
       }
       if (payload.type === "evaluation_chunk") {
         appendLog(`进度：${payload.content}`);
+        setProgressMessages((previous) => [...previous, payload.content]);
         return;
       }
       if (payload.type === "error") {
         setIsBusy(false);
+        setProgressMessages([]);
         appendLog(`错误：${payload.message}`);
         setTransportError(payload.message);
         return;
       }
       setIsBusy(false);
+      setProgressMessages([]);
       setLastResult(payload);
       appendLog(payload.message || "评分完成");
       void refreshRuns(payload.question_id);
@@ -155,6 +160,8 @@ export function InterviewPage() {
     }
 
     setIsBusy(true);
+    setLastResult(null);
+    setProgressMessages(["已提交答案，等待服务端返回..."]);
     socketRef.current.send(
       JSON.stringify({
         type: "submit_answer",
@@ -170,6 +177,7 @@ export function InterviewPage() {
   function clearLog() {
     setEventLog([]);
     setLastResult(null);
+    setProgressMessages([]);
     setRuns([]);
   }
 
@@ -203,6 +211,9 @@ export function InterviewPage() {
             </button>
             <button type="button" className="button button--ghost" onClick={() => void loadQuestion()}>
               抽取题目
+            </button>
+            <button type="button" className="button button--ghost" onClick={() => void refreshRuns()}>
+              {isPending ? "刷新中..." : "刷新闭环历史"}
             </button>
             <button type="button" className="button button--ghost" onClick={() => connectSocket()}>
               重连 WS
@@ -284,9 +295,6 @@ export function InterviewPage() {
               >
                 {isBusy ? "提交中..." : "提交答案"}
               </button>
-              <button type="button" className="button button--ghost" onClick={() => void refreshRuns()}>
-                {isPending ? "刷新中..." : "刷新闭环历史"}
-              </button>
               <button type="button" className="button button--ghost" onClick={() => clearLog()}>
                 清空日志
               </button>
@@ -321,7 +329,7 @@ export function InterviewPage() {
         description="提炼出四维评分、弱点和编排摘要，而不是把所有 JSON 原样甩给用户。"
         tone="signal"
       >
-        <ResultSummary result={lastResult} />
+        <ResultSummary result={lastResult} progressMessages={progressMessages} />
       </SectionCard>
 
       <SectionCard

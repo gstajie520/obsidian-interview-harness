@@ -5,10 +5,28 @@ import type { EvaluationCompleteMessage } from "../../lib/api";
 
 interface ResultSummaryProps {
   result: EvaluationCompleteMessage | null;
+  progressMessages: string[];
 }
 
-export function ResultSummary({ result }: ResultSummaryProps) {
+export function ResultSummary({
+  result,
+  progressMessages,
+}: ResultSummaryProps) {
   if (!result) {
+    if (progressMessages.length) {
+      return (
+        <div className="result-stack">
+          <div className="detail-card">
+            <div className="detail-card__label">评估进行中</div>
+            <ul>
+              {progressMessages.map((item, index) => (
+                <li key={`${index}-${item}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      );
+    }
     return (
       <EmptyState
         title="还没有本次结果"

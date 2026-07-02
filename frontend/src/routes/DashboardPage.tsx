@@ -24,7 +24,7 @@ export function DashboardPage() {
         api.health(),
         api.statsOverview(),
         api.weakModules(5),
-        api.dueReviews(8),
+        api.dueReviews(20),
       ]);
       startTransition(() => {
         setServiceHealthy(health.status === "ok");
