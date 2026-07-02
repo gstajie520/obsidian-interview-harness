@@ -22,8 +22,7 @@ from typing import Any, Optional
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 
 from agents.tools import memory_tools, question_tools
@@ -31,6 +30,9 @@ from scripts.multi_agent_orchestrator import MultiAgentOrchestrator
 
 
 SUPPORTED_WEBSOCKET_MESSAGE_TYPES = {"submit_answer"}
+ROOT_DIR = Path(__file__).resolve().parent.parent
+UI_BUILD_ROOT = ROOT_DIR / "ui_build"
+LEGACY_UI_ROOT = ROOT_DIR / "web_ui"
 
 
 class CreateSessionRequest(BaseModel):
@@ -41,6 +43,30 @@ class CreateSessionRequest(BaseModel):
     """
 
     primary_agent: str = "interviewer"
+
+
+def _get_ui_root() -> Path:
+    """返回当前应被托管的前端目录。
+
+    优先使用新的 Vite 构建产物目录 `ui_build/`；如果前端还没 build，则回退
+    到旧的 `web_ui/` 原型页，避免本地开发直接启动后端时彻底不可用。
+    """
+    if (UI_BUILD_ROOT / "index.html").exists():
+        return UI_BUILD_ROOT
+    return LEGACY_UI_ROOT
+
+
+def _resolve_ui_file(ui_root: Path, requested_path: str) -> Optional[Path]:
+    """安全解析 `/ui/*` 对应的静态文件路径。
+
+    这里会做一次 resolve()，确保最终路径仍然在 ui_root 下，避免用户通过
+    `../` 之类的路径穿越访问到其他文件。
+    """
+    safe_root = ui_root.resolve()
+    candidate = (safe_root / requested_path).resolve()
+    if candidate == safe_root or safe_root in candidate.parents:
+        return candidate
+    return None
 
 
 def create_app() -> FastAPI:
@@ -202,12 +228,30 @@ def create_app() -> FastAPI:
         except WebSocketDisconnect:
             return
 
-    ui_root = Path(__file__).resolve().parent.parent / "web_ui"
-    app.mount(
-        "/ui",
-        StaticFiles(directory=str(ui_root), html=True),
-        name="ui",
-    )
+    @app.get("/ui/{requested_path:path}")
+    def serve_ui(requested_path: str) -> FileResponse:
+        """托管前端构建产物，并为 React Router 提供 SPA fallback。
+
+        旧版静态 HTML 通过 `.html` 文件直接访问；新版 React 前端则需要：
+        - 真实静态资源（如 /ui/assets/*.js）按文件返回。
+        - 业务路由（如 /ui/dashboard）统一回退到 index.html，再交给前端路由。
+        """
+        ui_root = _get_ui_root()
+        index_file = ui_root / "index.html"
+
+        normalized = requested_path.strip("/")
+        if not normalized:
+            return FileResponse(index_file)
+
+        candidate = _resolve_ui_file(ui_root, normalized)
+        if candidate is not None and candidate.is_file():
+            return FileResponse(candidate)
+        if candidate is not None and candidate.is_dir():
+            nested_index = candidate / "index.html"
+            if nested_index.is_file():
+                return FileResponse(nested_index)
+
+        return FileResponse(index_file)
 
     return app
 

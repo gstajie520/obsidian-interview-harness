@@ -86,6 +86,9 @@ web_ui/dist/
 web_ui/build/
 web_ui/node_modules/
 web_ui/.next/
+frontend/node_modules/
+frontend/.vite/
+frontend/dist/
 
 # 系统文件
 Thumbs.db

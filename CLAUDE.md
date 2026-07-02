@@ -74,7 +74,7 @@ git config core.hooksPath .githooks
 | 错题分析师 Agent | 基础实现 | 可识别概念混淆、细节遗漏、场景不足、前置知识缺失，并输出补救建议 |
 | 其他角色 Agent | 基础实现/进行中 | `LinkerAgent`、`BuddyAgent` 已具备基础能力，继续补齐关联质量 |
 | 多 Agent 编排 | 进行中 | 已有多 Agent 编排线性路径，消息总线未实现 |
-| Web UI | 基础完成 | Dashboard、Interview、Review、Stats 四页，共享样式/导航/API 封装，由 FastAPI `/ui` 静态托管 |
+| Web UI | 已工程化 | `frontend/` 使用 React + TypeScript + Vite，FastAPI `/ui` 托管 `ui_build/` 构建产物并提供 SPA fallback |
 | Obsidian 自动导出 | 未实现 | 现阶段仍以数据库和 Markdown 知识库为主 |
 
 ---
@@ -100,7 +100,7 @@ git config core.hooksPath .githooks
 
 ### 前端和集成规划
 
-- **Web UI**: 计划使用 React + TypeScript + Vite。
+- **Web UI**: 已迁移到 React + TypeScript + Vite 工程；后续继续增强交互和图表。
 - **Obsidian**: 计划自动生成学习记录、周报和错题笔记。
 
 ---
@@ -153,14 +153,17 @@ obsidian-interview-harness/
 │   │   ├── schema.sql               # SQLite schema
 │   │   └── schema_mysql.sql         # MySQL schema
 │   └── memory/                      # 用户画像和长期记忆文件
-├── web_ui/                          # 静态 Web UI（Dashboard/Interview/Review/Stats）
-│   ├── index.html                   # 面试页（WebSocket 实时闭环）
-│   ├── dashboard.html               # 仪表盘：整体进度、薄弱模块、到期复习
-│   ├── review.html                  # 复习页：到期列表 + 题库检索
-│   ├── stats.html                   # 统计页：指标、掌握度分布、薄弱模块
-│   ├── styles.css                   # 共享设计系统
-│   ├── nav.js                       # 统一导航条注入脚本
-│   └── api.js                       # 前端公共 API 封装
+├── frontend/                        # React + TypeScript + Vite 前端源码
+│   ├── src/
+│   │   ├── routes/                  # Dashboard / Interview / Review / Stats 路由页
+│   │   ├── components/              # 复用 UI 组件
+│   │   ├── lib/                     # API / 类型 / 工具函数
+│   │   └── styles/                  # 全局样式系统
+│   ├── public/                      # 公开静态资源
+│   ├── package.json
+│   └── vite.config.ts
+├── ui_build/                        # FastAPI `/ui` 默认托管的前端构建产物
+├── web_ui/                          # 旧版静态原型页（保留作迁移参考）
 ├── 知识库/                          # Markdown 面试题库
 ├── 学习记录/                        # Obsidian 风格学习记录目录
 ├── AGENTS.md                        # 6 个 Agent 的架构设计
@@ -179,6 +182,13 @@ obsidian-interview-harness/
 
 ```bash
 pip install -r requirements.txt
+```
+
+如果要开发或重建前端，再安装 Node 依赖：
+
+```bash
+cd frontend
+npm install
 ```
 
 ### 2. 准备配置
@@ -214,7 +224,7 @@ python scripts/import_questions.py --knowledge-base java_interview
 python main.py
 ```
 
-默认会启动 FastAPI 服务和 `/ui` 静态前端。
+默认会启动 FastAPI 服务和 `/ui` 前端。
 
 常用子命令：
 
@@ -244,6 +254,13 @@ quit   退出面试
 
 ```bash
 python main.py serve
+```
+
+如果修改了 React 前端源码，先重新构建：
+
+```bash
+cd frontend
+npm run build
 ```
 
 常用接口：

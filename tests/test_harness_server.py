@@ -98,17 +98,17 @@ def test_ui_index_served(api_client: TestClient) -> None:
     response = api_client.get("/ui/")
     assert response.status_code == 200
     text = response.text
-    assert "<title>AI 面试陪练 - Interview UI</title>" in text
-    assert "AI 面试陪练 - Interview UI" in text
+    assert "<title>AI 面试陪练 · Study Lab</title>" in text
+    assert "AI 面试陪练 · Study Lab" in text
 
 
-def test_ui_static_pages_served(api_client: TestClient) -> None:
-    """仪表盘、复习、统计三个新页面以及共享资源都能被静态服务返回。"""
-    # 用参数化列表逐个断言，类似 JUnit 的 @ParameterizedTest。
+def test_ui_spa_routes_served(api_client: TestClient) -> None:
+    """React Router 业务路由应回退到同一个 SPA 入口页面。"""
     pages = {
-        "/ui/dashboard.html": "学习仪表盘",
-        "/ui/review.html": "复习中心",
-        "/ui/stats.html": "学习统计",
+        "/ui/dashboard": "AI 面试陪练 · Study Lab",
+        "/ui/review": "AI 面试陪练 · Study Lab",
+        "/ui/stats": "AI 面试陪练 · Study Lab",
+        "/ui/interview": "AI 面试陪练 · Study Lab",
     }
     for path, marker in pages.items():
         response = api_client.get(path)
@@ -116,16 +116,11 @@ def test_ui_static_pages_served(api_client: TestClient) -> None:
         assert marker in response.text, path
 
 
-def test_ui_shared_assets_served(api_client: TestClient) -> None:
-    """共享 CSS / JS 资源存在，保证多页面能复用同一套设计与 API 封装。"""
-    for path, marker in {
-        "/ui/styles.css": ".stat-card",
-        "/ui/nav.js": "nav-root",
-        "/ui/api.js": "statsOverview",
-    }.items():
-        response = api_client.get(path)
-        assert response.status_code == 200, path
-        assert marker in response.text, path
+def test_ui_shared_asset_served(api_client: TestClient) -> None:
+    """前端公共静态资源存在，说明 FastAPI 正在托管构建产物目录。"""
+    response = api_client.get("/ui/brand-mark.svg")
+    assert response.status_code == 200
+    assert "<svg" in response.text
 
 
 def test_session_lifecycle(api_client: TestClient) -> None:

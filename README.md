@@ -49,7 +49,7 @@
 | LinkerAgent | 基础实现 | 已支持关键词/模块/标题相似度推荐与关系类型 |
 | BuddyAgent | 基础实现 | 支持 3 级提示、通俗解释和陪练建议 |
 | 其他 2 个 Agent | 进行中 | 知识关联器和陪练伙伴已具备基础能力，编排器正在串联 |
-| Web UI | 基础完成 | Dashboard/Interview/Review/Stats 四页静态站点，由 FastAPI `/ui` 托管 |
+| Web UI | 已工程化 | `frontend/` 使用 React + TypeScript + Vite 实现，FastAPI `/ui` 托管 `ui_build/` 构建产物 |
 
 ## 快速开始
 
@@ -58,6 +58,15 @@
 ```bash
 pip install -r requirements.txt
 ```
+
+### 1.1 前端开发依赖（改造或重建 UI 时）
+
+```bash
+cd frontend
+npm install
+```
+
+首次拉代码后，如果你只想直接启动后端查看现成界面，可以先不执行这一步，因为仓库已经提交了最新的 `ui_build/` 构建产物。
 
 ### 2. 准备配置文件
 
@@ -120,6 +129,13 @@ python main.py
 ```text
 启动 FastAPI 服务，并托管 Web UI
 地址：http://127.0.0.1:8000/ui/
+```
+
+如果你修改了 `frontend/` 里的 React 源码，记得先重新构建：
+
+```bash
+cd frontend
+npm run build
 ```
 
 常用子命令：
@@ -197,14 +213,19 @@ python scripts/harness_server.py
 服务启动后，浏览器访问 `/ui` 即可使用四页静态站点：
 
 ```text
-http://127.0.0.1:8000/ui/            仪表盘之外的入口重定向
-http://127.0.0.1:8000/ui/dashboard.html   仪表盘：整体进度、掌握率、薄弱模块、到期复习
-http://127.0.0.1:8000/ui/index.html       面试：WebSocket 实时提交答案与闭环结果
-http://127.0.0.1:8000/ui/review.html      复习：到期列表 + 题库检索，一键跳转练习
-http://127.0.0.1:8000/ui/stats.html       统计：关键指标、掌握度分布、薄弱模块
+http://127.0.0.1:8000/ui/             仪表盘入口
+http://127.0.0.1:8000/ui/dashboard    仪表盘：整体进度、掌握率、薄弱模块、到期复习
+http://127.0.0.1:8000/ui/interview    面试：WebSocket 实时提交答案与闭环结果
+http://127.0.0.1:8000/ui/review       复习：到期列表 + 题库检索，一键跳转练习
+http://127.0.0.1:8000/ui/stats        统计：关键指标、掌握度分布、薄弱模块
 ```
 
-四页共享 `styles.css`（设计系统）、`nav.js`（顶部导航）、`api.js`（REST 封装），页面之间通过 URL 查询参数联动，例如从复习页点“去练习”会带着 `question_id` 跳到面试页自动载入题目。
+前端现在已经迁移为真正的工程化项目：
+
+- `frontend/src/routes/`：页面级路由组件
+- `frontend/src/components/`：可复用 UI 组件
+- `frontend/src/lib/api.ts`：REST / WebSocket 类型与访问封装
+- `ui_build/`：Vite 构建产物，由 FastAPI `/ui` 托管
 
 ## 项目结构
 
@@ -237,6 +258,16 @@ AI-Knowledge/
 │   ├── cli_interview.py            # 命令行面试入口
 │   ├── harness_server.py           # FastAPI 服务入口
 │   └── demo_full_flow.py           # 完整流程演示
+├── frontend/                       # React + TypeScript + Vite 前端源码
+│   ├── src/
+│   │   ├── routes/                 # Dashboard / Interview / Review / Stats 路由页
+│   │   ├── components/             # 复用组件
+│   │   ├── lib/                    # API / 类型 / 工具函数
+│   │   └── styles/                 # 全局样式系统
+│   ├── public/                     # 公开静态资源
+│   ├── package.json
+│   └── vite.config.ts
+├── ui_build/                       # 前端构建产物（FastAPI `/ui` 托管目标）
 ├── tests/                          # 自动化测试
 ├── 知识库/                         # Markdown 面试题库
 ├── 学习记录/                       # Obsidian 风格学习记录
@@ -290,6 +321,20 @@ python -m pytest tests/test_core_engine.py
 
 ```bash
 python -m pytest tests -q
+```
+
+前端本地开发：
+
+```bash
+cd frontend
+npm run dev
+```
+
+前端生产构建：
+
+```bash
+cd frontend
+npm run build
 ```
 
 验证 Agent Loop 脚本：
