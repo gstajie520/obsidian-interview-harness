@@ -75,7 +75,7 @@ finally 中的代码不一定会执行。
     print("\n" + "=" * 70)
     print("🎉 完整流程演示成功！")
     print("\n运行以下命令开始真实面试：")
-    print("  python scripts/cli_interview.py")
+    print("  python main.py cli")
 
 
 if __name__ == "__main__":

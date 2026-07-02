@@ -206,10 +206,30 @@ python scripts/init_database.py
 python scripts/import_questions.py --knowledge-base java_interview
 ```
 
-### 4. 启动命令行面试
+### 4. 使用统一入口启动项目
+
+推荐优先使用根目录 `main.py`：
 
 ```bash
-python scripts/cli_interview.py
+python main.py
+```
+
+默认会启动 FastAPI 服务和 `/ui` 静态前端。
+
+常用子命令：
+
+```bash
+python main.py serve
+python main.py cli
+python main.py init-db
+python main.py import-questions --knowledge-base java_interview
+python main.py bootstrap
+```
+
+### 5. 启动命令行面试
+
+```bash
+python main.py cli
 ```
 
 常用命令：
@@ -220,10 +240,10 @@ stats  查看学习统计
 quit   退出面试
 ```
 
-### 5. 启动 API 服务
+### 6. 启动 API 服务
 
 ```bash
-python scripts/harness_server.py
+python main.py serve
 ```
 
 常用接口：

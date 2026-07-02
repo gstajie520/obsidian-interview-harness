@@ -11,6 +11,9 @@
 - Context System：上下文管理与自动压缩
 
 使用方法：
+    python main.py cli
+
+兼容旧方式：
     python scripts/cli_interview.py
 
 输入 'quit' 或 'q' 退出面试。

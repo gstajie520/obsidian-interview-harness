@@ -357,6 +357,6 @@ if __name__ == "__main__":
             print(f"  - {tool_name}")
 
         print("\n✓ 面试官 Agent 准备就绪！")
-        print("\n运行 'python scripts/cli_interview.py' 开始面试")
+        print("\n运行 'python main.py cli' 开始面试")
 
     asyncio.run(test())

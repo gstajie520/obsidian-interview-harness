@@ -107,10 +107,45 @@ python scripts/import_questions.py --knowledge-base java_interview
 
 这个命令只会把题目的路径、模块、标题等元数据写入数据库，不会修改 Markdown 原文。
 
-### 5. 启动命令行面试
+### 5. 使用统一入口启动项目
+
+推荐直接使用根目录入口 `main.py`，不要再手动记多个 `scripts/*.py`：
 
 ```bash
-python scripts/cli_interview.py
+python main.py
+```
+
+默认行为：
+
+```text
+启动 FastAPI 服务，并托管 Web UI
+地址：http://127.0.0.1:8000/ui/
+```
+
+常用子命令：
+
+```bash
+python main.py serve
+python main.py cli
+python main.py init-db
+python main.py import-questions --knowledge-base java_interview
+python main.py bootstrap
+```
+
+其中：
+
+```text
+serve             启动 Web API + Web UI
+cli               启动命令行面试
+init-db           初始化 SQLite 数据库
+import-questions  导入题库元数据
+bootstrap         初始化数据库并导入题库，适合首次运行
+```
+
+### 6. 启动命令行面试
+
+```bash
+python main.py cli
 ```
 
 常用命令：
@@ -121,10 +156,16 @@ stats  查看学习统计
 quit   退出面试
 ```
 
-### 6. 启动 API 服务
+如果你仍想直接运行旧脚本，也可以继续使用：
 
 ```bash
-python scripts/harness_server.py
+python scripts/cli_interview.py
+```
+
+### 7. 启动 API 服务
+
+```bash
+python main.py serve
 ```
 
 服务默认监听：
@@ -145,7 +186,13 @@ WS   /ws/interview
 
 `/ws/interview` 已实现提交答案到评分闭环的最小实时流程：返回阶段化 `evaluation_chunk` 及最终 `evaluation_complete`，并落库学习记录与多 Agent 编排结果。真实 LLM 流式打分后续可继续增强。
 
-### 7. 打开 Web UI
+旧方式仍然可用：
+
+```bash
+python scripts/harness_server.py
+```
+
+### 8. 打开 Web UI
 
 服务启动后，浏览器访问 `/ui` 即可使用四页静态站点：
 

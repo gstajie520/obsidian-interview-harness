@@ -501,19 +501,19 @@ Java 类比：pytest 测试函数就像 JUnit 的 `@Test` 方法，只是 Python
 初始化数据库：
 
 ```powershell
-python scripts\init_database.py
+python main.py init-db
 ```
 
 导入题库：
 
 ```powershell
-python scripts\import_questions.py --knowledge-base java_interview
+python main.py import-questions --knowledge-base java_interview
 ```
 
 启动命令行面试：
 
 ```powershell
-python scripts\cli_interview.py
+python main.py cli
 ```
 
 跑全部测试：

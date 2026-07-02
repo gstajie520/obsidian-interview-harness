@@ -241,7 +241,7 @@ if token_usage > 92%:
 ### 启动面试
 
 ```bash
-python scripts/cli_interview.py
+python main.py cli
 ```
 
 ### 用户输入
@@ -417,7 +417,7 @@ python scripts/cli_interview.py
 
 ```bash
 # 1. 启动面试
-python scripts/cli_interview.py
+python main.py cli
 
 # 2. 输入问题
 > 请给我出一道题
@@ -510,6 +510,7 @@ self.tool_registry.register(
 
 ```
 第 1 天：理解执行流程
+  先用 `python main.py cli` 感受完整入口，再回头看真正的 CLI 实现文件。
   ├─ scripts/cli_interview.py (入口)
   ├─ agents/roles/interviewer_agent.py (Agent 主体)
   └─ agents/core/agent_loop.py (TAOR 循环)
